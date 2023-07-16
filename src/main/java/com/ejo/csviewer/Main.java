@@ -1,6 +1,6 @@
 package com.ejo.csviewer;
 
-import com.ejo.csviewer.scenes.TitleScene;
+import com.ejo.csviewer.scenes.GridScene;
 import com.ejo.glowlib.math.Vector;
 import com.ejo.glowui.Window;
 
@@ -10,7 +10,7 @@ public class Main {
             "CSViewer",
             new Vector(100,100),
             new Vector(800,600),
-            new TitleScene(),
+            new GridScene(),
             true, 4, 60, 60
     );
 
