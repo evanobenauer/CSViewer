@@ -10,12 +10,13 @@ public class Main {
     public static Window mainWindow = new Window(
             "CSViewer",
             new Vector(100,100),
-            new Vector(800,600),
-            new GridScene(new FileCSV("data/","sheetName2")),
-            true, 4, 60, 60
+            new Vector(1600,800),
+            new GridScene(new FileCSV("data/","sheetName")),
+            true, 4, 30, 60
     );
 
     public static void main(String[] args) {
+        mainWindow.setEconomic(true);
         mainWindow.run();
         mainWindow.close();
     }

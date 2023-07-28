@@ -8,25 +8,24 @@ import com.ejo.glowlib.misc.ColorE;
 import com.ejo.glowlib.misc.Container;
 import com.ejo.glowlib.setting.Setting;
 import com.ejo.glowlib.setting.SettingManager;
+import com.ejo.glowlib.util.ListUtil;
 
 import java.util.ArrayList;
 
 public class FileCSV {
 
-    private final SettingManager settingManager;
-
     private final ArrayList<ArrayList<Cell>> grid = new ArrayList<>();
 
-    private final Vector gridPos = new Vector(20,60);
-
-    private final Container<Integer> rowCount;
-    private final Container<Integer> columnCount;
+    private final SettingManager settingManager;
 
     private final String name;
     private final String path;
 
-    private final ArrayList<Setting<Integer>> columnWidthSettings;
-    private final ArrayList<Setting<Integer>> rowHeightSettings;
+    private final Container<Integer> rowCount;
+    private final Container<Integer> columnCount;
+
+    private final ArrayList<Setting<Integer>> columnWidthSettings = new ArrayList<>();
+    private final ArrayList<Setting<Integer>> rowHeightSettings = new ArrayList<>();
 
     public FileCSV(String path, String name) {
         this.name = name;
@@ -35,56 +34,47 @@ public class FileCSV {
         this.settingManager = new SettingManager(getPath(),getName() + "_settings");
 
         ArrayList<String[]> loadedData = CSVManager.getDataFromCSV(getPath(), getName());
-        this.columnCount = new Container<>(Util.getMaxRowSize(loadedData));
+        this.columnCount = new Container<>(ListUtil.getMaxRowSize(loadedData.toArray(new Object[0][0])));
         this.rowCount = new Container<>(loadedData.size());
 
-        //TODO: add settings depending on the column count and row count
-        this.columnWidthSettings = new ArrayList<>();
-        this.rowHeightSettings = new ArrayList<>();
+        for (int column = 0; column < ListUtil.getMaxRowSize(loadedData.toArray(new Object[0][0])); column++)
+            this.columnWidthSettings.add(new Setting<>(getSettingManager(), "column" + column + "_" + "width", 100));
+
+        for (int row = 0; row < loadedData.size(); row++)
+            this.rowHeightSettings.add(new Setting<>(getSettingManager(), "row" + row + "_" + "height", 20));
     }
 
-    //TODO: have positions constantly set so that the widths can work properly
     public void createGrid() {
-        int width = 100; //TODO: make these defaults loadable settings for each cell in a column
-        int height = 20;
-        int separation = 1;
-
         for (int row = 0; row < getRowCount().get(); row++) {
             getCellGrid().add(new ArrayList<>());
             for (int column = 0; column < getColumnCount().get(); column++) {
-                Cell cell = new Cell(this,column,row,new Vector(gridPos.getX() + column*(width + separation),gridPos.getY() + row*(height + separation)), new Vector(width,height),new ColorE(200,200,200),ColorE.BLACK);
+                Cell cell = new Cell(this,column,row,Vector.NULL,Vector.NULL,ColorE.BLACK,new ColorE(200,200,200),ColorE.BLACK);
                 getCellGrid().get(row).add(cell);
             }
         }
     }
 
     public void addRow() {
-        int width = 100;
-        int height = 20;
-        int separation = 1;
-
         int rowCount = getCellGrid().size();
 
         ArrayList<Cell> newRow = new ArrayList<>();
         for (int column = 0; column < getColumnCount().get(); column++) {
-            Cell cell = new Cell(this, column, rowCount, new Vector(gridPos.getX() + column * (width + separation), gridPos.getY() + rowCount * (height + separation)), new Vector(width, height), new ColorE(200, 200, 200), ColorE.BLACK);
+            Cell cell = new Cell(this, column, rowCount, Vector.NULL, Vector.NULL ,ColorE.BLACK, new ColorE(200, 200, 200), ColorE.BLACK);
             newRow.add(cell);
         }
         getCellGrid().add(newRow);
+        getRowHeightSettings().add(new Setting<>(getSettingManager(), "row" + rowCount + "_" + "height", 20));
 
         getRowCount().set(getRowCount().get() + 1);
     }
 
     public void addColumn() {
-        int width = 100;
-        int height = 20;
-        int separation = 1;
-
         int columnCount = getCellGrid().get(0).size();
 
         for(ArrayList<Cell> row : getCellGrid()) {
-            Cell cell = new Cell(this, columnCount, getCellGrid().indexOf(row), gridPos.getAdded(new Vector(columnCount * (width + separation), getCellGrid().indexOf(row) * (height + separation))), new Vector(width, height), new ColorE(200, 200, 200), ColorE.BLACK);
+            Cell cell = new Cell(this, columnCount, getCellGrid().indexOf(row), Vector.NULL, Vector.NULL, ColorE.BLACK,new ColorE(200, 200, 200), ColorE.BLACK);
             row.add(cell);
+            getColumnWidthSettings().add(new Setting<>(getSettingManager(), "column" + columnCount + "_" + "width", 100));
         }
 
         getColumnCount().set(getColumnCount().get() + 1);
@@ -92,12 +82,14 @@ public class FileCSV {
 
     public void deleteRow(int rowIndex) {
         getCellGrid().remove(rowIndex);
+        //TODO: Do Setting Transfer (Shift Up)
     }
 
     public void deleteColumn(int columnIndex) {
         for (ArrayList<Cell> row : getCellGrid()) {
             row.remove(columnIndex);
         }
+        //TODO; Do Setting Transfer (Shift Left)
     }
 
     public void save() {
@@ -120,11 +112,27 @@ public class FileCSV {
             for (int j = 0; j < loadedData.get(i).length; j++) {
                 try {
                     getCellGrid().get(i).get(j).getContainer().set(loadedData.get(i)[j]);
-                } catch (IndexOutOfBoundsException e) {
-                    continue;
+                } catch (IndexOutOfBoundsException ignored) {
                 }
             }
         }
+    }
+
+
+    public SettingManager getSettingManager() {
+        return settingManager;
+    }
+
+    public ArrayList<Setting<Integer>> getColumnWidthSettings() {
+        return columnWidthSettings;
+    }
+
+    public ArrayList<Setting<Integer>> getRowHeightSettings() {
+        return rowHeightSettings;
+    }
+
+    public ArrayList<ArrayList<Cell>> getCellGrid() {
+        return grid;
     }
 
     public Container<Integer> getRowCount() {
@@ -133,15 +141,6 @@ public class FileCSV {
 
     public Container<Integer> getColumnCount() {
         return columnCount;
-    }
-
-
-    public SettingManager getSettingManager() {
-        return settingManager;
-    }
-
-    public ArrayList<ArrayList<Cell>> getCellGrid() {
-        return grid;
     }
 
     public String getName() {

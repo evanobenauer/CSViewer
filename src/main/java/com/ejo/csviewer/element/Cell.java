@@ -7,7 +7,9 @@ import com.ejo.glowlib.misc.Container;
 import com.ejo.glowlib.setting.Setting;
 import com.ejo.glowlib.time.StopWatch;
 import com.ejo.glowui.scene.Scene;
+import com.ejo.glowui.scene.elements.shape.RectangleUI;
 import com.ejo.glowui.scene.elements.widget.TextFieldUI;
+import com.ejo.glowui.util.Key;
 import com.ejo.glowui.util.QuickDraw;
 
 import java.awt.*;
@@ -16,20 +18,34 @@ public class Cell extends TextFieldUI {
 
     private final FileCSV file;
 
+    private boolean selected;
+
+    private final Setting<Boolean> textBold;
+    private final Setting<Boolean> textItalic;
+
+    private final Setting<ColorE> textColor;
     private final Setting<ColorE> fillColor;
     private final Setting<ColorE> outlineColor;
+    private final Setting<Double> outlineWidth;
 
     private final int columnIndex;
     private final int rowIndex;
 
-    public Cell(FileCSV file, int columnIndex, int rowIndex, Vector pos, Vector size, ColorE fill, ColorE outline) {
+    public Cell(FileCSV file, int columnIndex, int rowIndex, Vector pos, Vector size, ColorE textColor, ColorE fillColor, ColorE outlineColor) {
         super(pos, size, ColorE.WHITE,new Container<>(""),"",false);
         this.file = file;
         this.columnIndex = columnIndex;
         this.rowIndex = rowIndex;
 
-        this.fillColor = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "fillColor",fill);
-        this.outlineColor = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "outlineColor",outline);
+        this.selected = false;
+
+        this.textBold = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "textBold",false);
+        this.textItalic = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "textItalic",false);
+
+        this.textColor = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "textColor",textColor);
+        this.fillColor = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "fillColor",fillColor);
+        this.outlineColor = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "outlineColor",outlineColor);
+        this.outlineWidth = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "outlineWidth",.6);
     }
 
     private final StopWatch cursorTimer = new StopWatch();
@@ -37,8 +53,8 @@ public class Cell extends TextFieldUI {
     @Override
     protected void drawWidget(Scene scene, Vector mousePos) {
         //Draw Background
-        QuickDraw.drawRect(getPos(),getSize(),getFillColor());
-        new OutlinedRectangleUI(getPos(),getSize(),getOutlineColor()).draw();
+        QuickDraw.drawRect(getPos(),getSize(),getFillColor().get());
+        new RectangleUI(getPos(),getSize(),true,getOutlineWidth().get().floatValue(),getOutlineColor().get()).draw(); //TODO: Fix outlined rect bug. I don't see it anymore???
 
         double border = getSize().getY()/5;
 
@@ -46,8 +62,12 @@ public class Cell extends TextFieldUI {
         String msg = (hasTitle() ? getTitle() + ": " : "") + getContainer().get();
         int size = (int) (getSize().getY() / 1.5);
         setUpDisplayText(msg,border,size);
-        getDisplayText().setPos(getPos().getAdded(border, -2 + getSize().getY() / 2 - getDisplayText().getHeight() / 2));
-        getDisplayText().setColor(ColorE.BLACK);
+        getDisplayText().setPos(getPos().getAdded(border, getSize().getY() / 2 - getDisplayText().getHeight() / 2));
+        getDisplayText().setColor(getTextColor().get());
+        getDisplayText().setModifier(Font.PLAIN);
+        if (isTextBold().get() && isTextItalic().get()) getDisplayText().setModifier(Font.BOLD | Font.ITALIC);
+        else if (isTextBold().get()) getDisplayText().setModifier(Font.BOLD);
+        else if (isTextItalic().get()) getDisplayText().setModifier(Font.ITALIC);
 
         //Draw Hint
         if (getContainer().get().equals(""))
@@ -57,32 +77,88 @@ public class Cell extends TextFieldUI {
 
         //Draw Blinking Cursor
         if (isTyping()) {
-            new OutlinedRectangleUI(getPos(),getSize(),ColorE.GREEN).draw();
-            cursorTimer.start();
-            if (cursorTimer.hasTimePassedS(1)) cursorTimer.restart();
-            int alpha = cursorTimer.hasTimePassedMS(500) ? 255 : 0;
-            double x = getPos().getX() + getDisplayText().getWidth() + border;
-            double y = getPos().getY() + border;
-            QuickDraw.drawRect(new Vector(x, y), new Vector(2, getSize().getY() - 2 * border), new ColorE(255, 255, 255, alpha));
+            new RectangleUI(getPos(),getSize(),true,Math.max(2,getOutlineWidth().get().floatValue()),ColorE.GREEN).draw();
+            //cursorTimer.start();
+            //if (cursorTimer.hasTimePassedS(1)) cursorTimer.restart();
+            //int alpha = cursorTimer.hasTimePassedMS(500) ? 255 : 0;
+
+            String[] text = getDisplayText().getText().split("\\\\n");
+            String lastRow = text[text.length - 1];
+            double lastRowWidth = getDisplayText().getFontMetrics().stringWidth(lastRow) * getDisplayText().getScale();
+
+            double x = getPos().getX() + lastRowWidth + border;
+            double height = (getSize().getY() - 2 * border) / text.length;
+            double y = getPos().getY() + getSize().getY() - height - border/text.length;
+            QuickDraw.drawRect(new Vector(x, y), new Vector(2, height), getTextColor().get().setAlpha(255));
         }
+        if (isSelected()) new RectangleUI(getPos(),getSize(),true,Math.max(2,getOutlineWidth().get().floatValue()),ColorE.BLUE.green(175)).draw();
 
         //Draw Text Object
         getDisplayText().draw(scene, mousePos);
-    }
 
-    @Override
-    public void onMouseClick(Scene scene, int button, int action, int mods, Vector mousePos) {
-        super.onMouseClick(scene, button, action, mods, mousePos);
-        if (isMouseOver()) setOutlineColor(ColorE.WHITE);
     }
 
     @Override
     public void onKeyPress(Scene scene, int key, int scancode, int action, int mods) {
+        if (key == Key.KEY_COMMA.getId() && !(Key.KEY_RSHIFT.isKeyDown() || Key.KEY_LSHIFT.isKeyDown())) return;
         super.onKeyPress(scene, key, scancode, action, mods);
     }
 
-    public FileCSV getFile() {
-        return file;
+    public void setTextColor(ColorE textColor) {
+        getTextColor().set(textColor);
+    }
+
+    public void setFillColor(ColorE fillColor) {
+        getFillColor().set(fillColor);
+    }
+
+    public void setOutlineColor(ColorE outlineColor) {
+       getOutlineColor().set(outlineColor);
+    }
+
+    public void setOutlineWidth(float outlineWidth) {
+        getOutlineWidth().set((double)outlineWidth);
+    }
+
+    public void setTextBold(boolean bold) {
+        isTextBold().set(bold);
+    }
+
+    public void setTextItalic(boolean italic) {
+        isTextItalic().set(italic);
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+
+    public Setting<ColorE> getTextColor() {
+        return textColor;
+    }
+
+    public Setting<ColorE> getFillColor() {
+        return fillColor;
+    }
+
+    public Setting<ColorE> getOutlineColor() {
+        return outlineColor;
+    }
+
+    public Setting<Double> getOutlineWidth() {
+        return outlineWidth;
+    }
+
+    public Setting<Boolean> isTextBold() {
+        return textBold;
+    }
+
+    public Setting<Boolean> isTextItalic() {
+        return textItalic;
+    }
+
+    public boolean isSelected() {
+        return selected;
     }
 
     public int getColumnIndex() {
@@ -93,21 +169,8 @@ public class Cell extends TextFieldUI {
         return rowIndex;
     }
 
-    public void setFillColor(ColorE fillColor) {
-        this.fillColor.set(fillColor);
-    }
-
-    public void setOutlineColor(ColorE outlineColor) {
-        this.outlineColor.set(outlineColor);
-    }
-
-
-    public ColorE getFillColor() {
-        return fillColor.get();
-    }
-
-    public ColorE getOutlineColor() {
-        return outlineColor.get();
+    public FileCSV getFile() {
+        return file;
     }
 
 }
