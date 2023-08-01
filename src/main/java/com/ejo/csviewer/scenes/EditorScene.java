@@ -7,6 +7,7 @@ import com.ejo.glowlib.math.Vector;
 import com.ejo.glowlib.misc.ColorE;
 import com.ejo.glowlib.misc.Container;
 import com.ejo.glowlib.util.StringUtil;
+import com.ejo.glowui.event.EventRegistry;
 import com.ejo.glowui.scene.Scene;
 import com.ejo.glowui.scene.elements.SideBarUI;
 import com.ejo.glowui.scene.elements.TextUI;
@@ -132,6 +133,24 @@ public class EditorScene extends Scene {
         rotText.drawCentered(this, getWindow().getScaledMousePos(), buttonAddColumn.getSize());
 
         QuickDraw.drawFPSTPS(this, new Vector(2, 2), 10, false);
+    }
+
+    @Override
+    public void animate() {
+        super.animate();
+        try {
+            //Animate Cells
+            for (int i = getRowStartIndex(); i < getRowEndIndex(); i++) {
+                for (Cell cell : getFile().getCellGrid().get(i)) cell.animate(this);
+            }
+            //Animate Column Buttons
+            for (ButtonUI button : columnButtonList) button.animate(this);
+
+            //Animate Row Buttons
+            for (int row = getRowStartIndex(); row < getRowEndIndex(); row++) rowButtonList.get(row).animate(this);
+
+        } catch (ConcurrentModificationException | IndexOutOfBoundsException ignored) {
+        }
     }
 
     @Override
