@@ -41,7 +41,6 @@ public class EditorScene extends Scene {
             settingSliderOutlineWidth = new SliderUI<>("Outline", new Vector(100, 10), new Vector(100, 20), ColorE.BLUE, new Container<>(0d),.6d,3d,.2d, SliderUI.Type.FLOAT,true)
     );
 
-
     private final SliderUI<Integer> settingSliderColumnWidth;
     private final ButtonUI deleteColumnButton;
     private final SideBarUI columnSettingsBar = new SideBarUI("Column Settings", SideBarUI.Type.TOP, 40, false, settingsBarColor,
@@ -91,7 +90,7 @@ public class EditorScene extends Scene {
         columnSettingsBar.getButton().disable(true);
         rowSettingsBar.getButton().disable(true);
 
-        setCellStartIndex(0); //Sets the index to the start
+        setRowStartIndex(0); //Sets the index to the start
     }
 
     @Override
@@ -114,8 +113,8 @@ public class EditorScene extends Scene {
         }
 
         //Draw Add Row Button
-        if (getCellEndIndex() == getFile().getCellGrid().size() - 1) {
-            buttonAddRow.setPos(new Vector(getSize().getX() / 2 - buttonAddRow.getSize().getX() / 2,getFile().getCellGrid().get(getCellEndIndex() - 1).get(0).getPos().getY() + 30));
+        if (getRowEndIndex() == getFile().getCellGrid().size() - 1) {
+            buttonAddRow.setPos(new Vector(getSize().getX() / 2 - buttonAddRow.getSize().getX() / 2,getFile().getCellGrid().get(getRowEndIndex() - 1).get(0).getPos().getY() + 30));
             buttonAddRow.disable(false);
         } else {
             buttonAddRow.disable(true);
@@ -123,7 +122,7 @@ public class EditorScene extends Scene {
 
         //Draw Add Column Button
         double gridWidth = 0;
-        for (Cell cell : getFile().getCellGrid().get(getCellStartIndex())) gridWidth += cell.getSize().getX();
+        for (Cell cell : getFile().getCellGrid().get(getRowStartIndex())) gridWidth += cell.getSize().getX();
         buttonAddColumn.setPos(getSize().getAdded(0, -getSize().getY() / 2).getAdded(60 - getSize().getX() + gridWidth, -buttonAddColumn.getSize().getY() / 2));
 
         super.draw();
@@ -140,14 +139,14 @@ public class EditorScene extends Scene {
         super.tick();
         try {
             //Tick Cells
-            for (int i = getCellStartIndex(); i < getCellEndIndex(); i++) {
+            for (int i = getRowStartIndex(); i < getRowEndIndex(); i++) {
                 for (Cell cell : getFile().getCellGrid().get(i)) cell.tick(this);
             }
             //Tick Column Buttons
             for (ButtonUI button : columnButtonList) button.tick(this);
 
             //Tick Row Buttons
-            for (int row = getCellStartIndex(); row < getCellEndIndex(); row++) rowButtonList.get(row).tick(this);
+            for (int row = getRowStartIndex(); row < getRowEndIndex(); row++) rowButtonList.get(row).tick(this);
 
         } catch (ConcurrentModificationException | IndexOutOfBoundsException ignored) {
         }
@@ -158,22 +157,22 @@ public class EditorScene extends Scene {
         super.onKeyPress(key, scancode, action, mods);
         try {
             //Key Cells
-            for (int i = getCellStartIndex(); i < getCellEndIndex(); i++) {
+            for (int i = getRowStartIndex(); i < getRowEndIndex(); i++) {
                 for (Cell cell : getFile().getCellGrid().get(i)) cell.onKeyPress(this, key, scancode, action, mods);
             }
             //Key Column Buttons
             for (ButtonUI but : columnButtonList) but.onKeyPress(this, key, scancode, action, mods);
 
             //Key Row Buttons
-            for (int row = getCellStartIndex(); row < getCellEndIndex(); row++) rowButtonList.get(row).onKeyPress(this, key, scancode, action, mods);
+            for (int row = getRowStartIndex(); row < getRowEndIndex(); row++) rowButtonList.get(row).onKeyPress(this, key, scancode, action, mods);
 
         } catch (ConcurrentModificationException | IndexOutOfBoundsException ignored) {
         }
 
         //ARROW KEY SCROLL CODE
         if (action == Key.ACTION_PRESS || action == Key.ACTION_HOLD) {
-            if (key == Key.KEY_UP.getId()) setCellStartIndex(getCellStartIndex() - 1);
-            if (key == Key.KEY_DOWN.getId()) setCellStartIndex(getCellStartIndex() + 1);
+            if (key == Key.KEY_UP.getId()) setRowStartIndex(getRowStartIndex() - 1);
+            if (key == Key.KEY_DOWN.getId()) setRowStartIndex(getRowStartIndex() + 1);
         }
     }
 
@@ -182,15 +181,14 @@ public class EditorScene extends Scene {
         super.onMouseClick(button, action, mods, mousePos);
         try {
             //Mouse Cells
-            for (int i = getCellStartIndex(); i < getCellEndIndex(); i++) {
+            for (int i = getRowStartIndex(); i < getRowEndIndex(); i++) {
                 for (Cell cell : getFile().getCellGrid().get(i)) cell.onMouseClick(this, button, action, mods, mousePos);
             }
             //Mouse Column Buttons
             for (ButtonUI but : columnButtonList) but.onMouseClick(this, button, action, mods, mousePos);
 
             //Mouse Row Buttons
-            for (int row = getCellStartIndex(); row < getCellEndIndex(); row++)
-                rowButtonList.get(row).onMouseClick(this, button, action, mods, mousePos);
+            for (int row = getRowStartIndex(); row < getRowEndIndex(); row++) rowButtonList.get(row).onMouseClick(this, button, action, mods, mousePos);
 
         } catch (ConcurrentModificationException | IndexOutOfBoundsException ignored) {
         }
@@ -220,7 +218,9 @@ public class EditorScene extends Scene {
         }
 
         //Close Row Settings Bar When Click Outside
-        for (ButtonUI rowButton : getRowButtonList()) {
+        //for (ButtonUI rowButton : getRowButtonList()) {
+        for (int row = 0; row < getRowButtonList().size(); row++) {
+            ButtonUI rowButton = getRowButtonList().get(row);
             String title = "Row: " + getRowButtonList().indexOf(rowButton) + " Settings";
             if (!rowButton.isMouseOver() && rowSettingsBar.getTitle().equals(title) && getWindow().getScaledMousePos().getY() > rowSettingsBar.getWidth()) {
                 rowSettingsBar.setOpen(false);
@@ -229,7 +229,7 @@ public class EditorScene extends Scene {
 
 
         //Set Cell Selected, Open Cell Settings Bar
-        for (int row = getCellStartIndex(); row < getCellEndIndex(); row++) {
+        for (int row = getRowStartIndex(); row < getRowEndIndex(); row++) {
             for (int column = 0; column < getFile().getCellGrid().get(row).size(); column++) {
                 Cell cell = getFile().getCellGrid().get(row).get(column);
 
@@ -260,7 +260,7 @@ public class EditorScene extends Scene {
     @Override
     public void onMouseScroll(int scroll, Vector mousePos) {
         super.onMouseScroll(scroll, mousePos);
-        setCellStartIndex(getCellStartIndex() - scroll);
+        setRowStartIndex(getRowStartIndex() - scroll);
     }
 
 
@@ -268,7 +268,7 @@ public class EditorScene extends Scene {
         int x = (int) gridPos.getX();
         int y = (int) gridPos.getY();
 
-        for (int row = getCellStartIndex(); row < getCellEndIndex(); row++) {
+        for (int row = getRowStartIndex(); row < getRowEndIndex(); row++) {
             for (int column = 0; column < getFile().getCellGrid().get(row).size(); column++) {
                 Cell cell = getFile().getCellGrid().get(row).get(column);
                 cell.setPos(new Vector(x, y));
@@ -295,7 +295,7 @@ public class EditorScene extends Scene {
         }
         x = (int) gridPos.getX() - size - separation;
         y = (int) gridPos.getY();
-        for (int row = getCellStartIndex(); row < getCellEndIndex(); row++) {
+        for (int row = getRowStartIndex(); row < getRowEndIndex(); row++) {
             ButtonUI button = rowButtonList.get(row);
             button.setPos(new Vector(x, y));
             button.setSize(new Vector(size, getFile().getRowHeightSettings().get(row).get()));
@@ -356,7 +356,7 @@ public class EditorScene extends Scene {
         settingSliderOutlineWidth.setContainer(cell.getOutlineWidth());
     }
 
-    private void setCellStartIndex(int val) {
+    private void setRowStartIndex(int val) {
         this.cellStartIndex = Math.min(val, getFile().getCellGrid().size() - 2);
     }
 
@@ -370,12 +370,12 @@ public class EditorScene extends Scene {
     }
 
 
-    private int getCellStartIndex() {
+    private int getRowStartIndex() {
         return Math.max(this.cellStartIndex, 0);
     }
 
-    private int getCellEndIndex() {
-        int index = getCellStartIndex() + (int) getSize().getY() / 22;
+    private int getRowEndIndex() {
+        int index = getRowStartIndex() + (int) getSize().getY() / 22;
         return Math.min(index, getFile().getCellGrid().size() - 1);
     }
 
