@@ -1,27 +1,47 @@
 package com.ejo.csviewer.element;
 
 import com.ejo.glowlib.math.Vector;
+import com.ejo.glowlib.misc.ColorE;
+import com.ejo.glowlib.misc.Container;
 import com.ejo.glowui.scene.Scene;
-import com.ejo.glowui.scene.elements.ElementUI;
+import com.ejo.glowui.scene.elements.widget.WidgetUI;
 
-public class ColorPickerUI extends ElementUI {
+public class ColorPickerUI extends WidgetUI {
 
-    public ColorPickerUI(Vector pos, boolean shouldRender, boolean shouldTick) {
-        super(pos, shouldRender, shouldTick);
+    private ColorE color;
+    private Container<ColorE> container;
+
+    public ColorPickerUI(String title, Vector pos, Vector size, Container<ColorE> container) {
+        super(title, pos, size, true,true, null);
+        setAction(() -> {
+            getContainer().set(color);
+        });
     }
 
     @Override
-    protected void drawElement(Scene scene, Vector mousePos) {
+    protected void drawWidget(Scene scene, Vector mousePos) {
 
     }
 
     @Override
-    protected void tickElement(Scene scene, Vector mousePos) {
+    protected void tickWidget(Scene scene, Vector mousePos) {
 
     }
 
     @Override
-    public boolean updateMouseOver(Vector mousePos) {
-        return false;
+    public void onKeyPress(Scene scene, int key, int scancode, int action, int mods) {
+
+    }
+
+    @Override
+    public void onMouseClick(Scene scene, int button, int action, int mods, Vector mousePos) {
+
+    }
+
+    //TODO: Make this for stuff, maybe move over to GlowUI when developed
+
+
+    public Container<ColorE> getContainer() {
+        return container;
     }
 }

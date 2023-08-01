@@ -1,5 +1,6 @@
 package com.ejo.csviewer.element;
 
+import com.ejo.csviewer.Main;
 import com.ejo.csviewer.data.FileCSV;
 import com.ejo.glowlib.math.Vector;
 import com.ejo.glowlib.misc.ColorE;
@@ -10,6 +11,7 @@ import com.ejo.glowui.scene.Scene;
 import com.ejo.glowui.scene.elements.shape.RectangleUI;
 import com.ejo.glowui.scene.elements.widget.TextFieldUI;
 import com.ejo.glowui.util.Key;
+import com.ejo.glowui.util.Mouse;
 import com.ejo.glowui.util.QuickDraw;
 
 import java.awt.*;
@@ -45,7 +47,7 @@ public class Cell extends TextFieldUI {
         this.textColor = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "textColor",textColor);
         this.fillColor = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "fillColor",fillColor);
         this.outlineColor = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "outlineColor",outlineColor);
-        this.outlineWidth = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "outlineWidth",.6);
+        this.outlineWidth = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "outlineWidth",.6d);
     }
 
     private final StopWatch cursorTimer = new StopWatch();
@@ -54,13 +56,14 @@ public class Cell extends TextFieldUI {
     protected void drawWidget(Scene scene, Vector mousePos) {
         //Draw Background
         QuickDraw.drawRect(getPos(),getSize(),getFillColor().get());
-        new RectangleUI(getPos(),getSize(),true,getOutlineWidth().get().floatValue(),getOutlineColor().get()).draw(); //TODO: Fix outlined rect bug. I don't see it anymore???
+        new RectangleUI(getPos(),getSize(),true,getOutlineWidth().get().floatValue(),getOutlineColor().get()).draw();
 
-        double border = getSize().getY()/5;
+        double border = 4;//getSize().getY()/5;
 
         //Prepare Text
         String msg = (hasTitle() ? getTitle() + ": " : "") + getContainer().get();
-        int size = (int) (getSize().getY() / 1.5);
+        //int size = (int) (getSize().getY() / 1.5);
+        int size = 13;
         setUpDisplayText(msg,border,size);
         getDisplayText().setPos(getPos().getAdded(border, getSize().getY() / 2 - getDisplayText().getHeight() / 2));
         getDisplayText().setColor(getTextColor().get());
@@ -101,7 +104,26 @@ public class Cell extends TextFieldUI {
     @Override
     public void onKeyPress(Scene scene, int key, int scancode, int action, int mods) {
         if (key == Key.KEY_COMMA.getId() && !(Key.KEY_RSHIFT.isKeyDown() || Key.KEY_LSHIFT.isKeyDown())) return;
+        if ((Key.KEY_LCONTROL.isKeyDown() || Key.KEY_RCONTROL.isKeyDown()) && action == Key.ACTION_PRESS && (isTyping() || isSelected()) && (key == Key.KEY_B.getId() || key == Key.KEY_I.getId())) {
+            if (key == Key.KEY_B.getId()) setTextBold(!isTextBold().get());
+            if (key == Key.KEY_I.getId()) setTextItalic(!isTextItalic().get());
+            return;
+        }
         super.onKeyPress(scene, key, scancode, action, mods);
+    }
+
+    @Override
+    public void onMouseClick(Scene scene, int button, int action, int mods, Vector mousePos) {
+        if (isMouseOver()) {
+            if (button == Mouse.BUTTON_LEFT.getId() && action == Mouse.ACTION_CLICK) {
+                setTyping(!isTyping());
+                setSelected(false);
+            }
+        } else {
+            if (action == Mouse.ACTION_CLICK) {
+                if (isTyping()) setTyping(false);
+            }
+        }
     }
 
     public void setTextColor(ColorE textColor) {
@@ -116,8 +138,8 @@ public class Cell extends TextFieldUI {
        getOutlineColor().set(outlineColor);
     }
 
-    public void setOutlineWidth(float outlineWidth) {
-        getOutlineWidth().set((double)outlineWidth);
+    public void setOutlineWidth(double outlineWidth) {
+        getOutlineWidth().set(outlineWidth);
     }
 
     public void setTextBold(boolean bold) {

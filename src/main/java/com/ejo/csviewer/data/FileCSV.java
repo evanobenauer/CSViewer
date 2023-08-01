@@ -14,18 +14,17 @@ import java.util.ArrayList;
 
 public class FileCSV {
 
-    private final ArrayList<ArrayList<Cell>> grid = new ArrayList<>();
-
-    private final SettingManager settingManager;
-
     private final String name;
     private final String path;
 
-    private final Container<Integer> rowCount;
-    private final Container<Integer> columnCount;
+    private final SettingManager settingManager;
 
+    private final ArrayList<ArrayList<Cell>> grid = new ArrayList<>();
     private final ArrayList<Setting<Integer>> columnWidthSettings = new ArrayList<>();
     private final ArrayList<Setting<Integer>> rowHeightSettings = new ArrayList<>();
+
+    private final Container<Integer> rowCount;
+    private final Container<Integer> columnCount;
 
     public FileCSV(String path, String name) {
         this.name = name;
@@ -86,9 +85,7 @@ public class FileCSV {
     }
 
     public void deleteColumn(int columnIndex) {
-        for (ArrayList<Cell> row : getCellGrid()) {
-            row.remove(columnIndex);
-        }
+        for (ArrayList<Cell> row : getCellGrid()) row.remove(columnIndex);
         //TODO; Do Setting Transfer (Shift Left)
     }
 
@@ -119,8 +116,12 @@ public class FileCSV {
     }
 
 
-    public SettingManager getSettingManager() {
-        return settingManager;
+    public Container<Integer> getRowCount() {
+        return rowCount;
+    }
+
+    public Container<Integer> getColumnCount() {
+        return columnCount;
     }
 
     public ArrayList<Setting<Integer>> getColumnWidthSettings() {
@@ -131,24 +132,21 @@ public class FileCSV {
         return rowHeightSettings;
     }
 
+    public SettingManager getSettingManager() {
+        return settingManager;
+    }
+
     public ArrayList<ArrayList<Cell>> getCellGrid() {
         return grid;
     }
 
-    public Container<Integer> getRowCount() {
-        return rowCount;
-    }
 
-    public Container<Integer> getColumnCount() {
-        return columnCount;
+    public String getPath() {
+        return path;
     }
 
     public String getName() {
         return name;
-    }
-
-    public String getPath() {
-        return path;
     }
 
 }
