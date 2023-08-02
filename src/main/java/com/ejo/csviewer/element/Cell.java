@@ -48,6 +48,8 @@ public class Cell extends TextFieldUI {
         this.fillColor = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "fillColor",fillColor);
         this.outlineColor = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "outlineColor",outlineColor);
         this.outlineWidth = new Setting<>(file.getSettingManager(),getColumnIndex() + "_" + getRowIndex() + "_" + "outlineWidth",.6d);
+
+        onMaintenance.unsubscribe();
     }
 
     private final StopWatch cursorTimer = new StopWatch();

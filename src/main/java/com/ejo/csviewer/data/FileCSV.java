@@ -81,11 +81,13 @@ public class FileCSV {
 
     public void deleteRow(int rowIndex) {
         getCellGrid().remove(rowIndex);
+        getRowCount().set(getRowCount().get() - 1); //Shift Row Count On Delete
         //TODO: Do Setting Transfer (Shift Up)
     }
 
     public void deleteColumn(int columnIndex) {
         for (ArrayList<Cell> row : getCellGrid()) row.remove(columnIndex);
+        getColumnCount().set(getColumnCount().get() - 1); //Shift Column Count On Delete
         //TODO; Do Setting Transfer (Shift Left)
     }
 

@@ -3,6 +3,7 @@ package com.ejo.csviewer.scenes;
 import com.ejo.csviewer.data.FileCSV;
 import com.ejo.csviewer.element.Cell;
 import com.ejo.csviewer.element.TextH;
+import com.ejo.glowlib.event.EventAction;
 import com.ejo.glowlib.math.Vector;
 import com.ejo.glowlib.misc.ColorE;
 import com.ejo.glowlib.misc.Container;
@@ -70,6 +71,23 @@ public class EditorScene extends Scene {
         createColumnButton();
     });
 
+
+    /**
+     * This maintenance thread injection modifies the current animation injections included in all widgets. This will run the animations ONLY for the selected widgets
+     * to accommodate for larger csv files. All widget injections are unsubscribed and routed through this action
+     */
+    public final EventAction animationInjection = new EventAction(EventRegistry.EVENT_RUN_MAINTENANCE, () -> {
+        for (int row = getRowStartIndex(); row < getRowEndIndex(); row++) {
+            for (int column = 0; column < getFile().getCellGrid().get(row).size(); column++) {
+                Cell cell = getFile().getCellGrid().get(row).get(column);
+                cell.onMaintenance.run();
+            }
+            getRowButtonList().get(row).onMaintenance.run();
+        }
+        for (ButtonUI button : columnButtonList) button.onMaintenance.run();
+    });
+
+
     public EditorScene(FileCSV file) {
         super(file.getName() + " Scene");
         this.file = file;
@@ -92,10 +110,12 @@ public class EditorScene extends Scene {
         rowSettingsBar.getButton().disable(true);
 
         setRowStartIndex(0); //Sets the index to the start
+        animationInjection.subscribe();
     }
 
     @Override
     public void draw() {
+        System.out.println(EventRegistry.EVENT_RUN_MAINTENANCE.getActions().size());
         //Draw Background
         QuickDraw.drawRect(Vector.NULL, getSize(), new ColorE(150, 150, 150));
 
@@ -219,10 +239,9 @@ public class EditorScene extends Scene {
         }
 
         //Close Row Settings Bar When Click Outside
-        //for (ButtonUI rowButton : getRowButtonList()) {
         for (int row = 0; row < getRowButtonList().size(); row++) {
             ButtonUI rowButton = getRowButtonList().get(row);
-            String title = "Row: " + getRowButtonList().indexOf(rowButton) + " Settings";
+            String title = "Row: " + row + " Settings";
             if (!rowButton.isMouseOver() && rowSettingsBar.getTitle().equals(title) && getWindow().getScaledMousePos().getY() > rowSettingsBar.getWidth()) {
                 rowSettingsBar.setOpen(false);
             }
@@ -307,13 +326,13 @@ public class EditorScene extends Scene {
 
     private void createColumnButton() {
         int index = columnButtonList.size();
-        columnButtonList.add(new ButtonUI(String.valueOf(StringUtil.getLetterFromIndex(index)).toUpperCase(), Vector.NULL, Vector.NULL, ColorE.GRAY, ButtonUI.MouseButton.LEFT,() -> {
+        ButtonUI button;
+        columnButtonList.add(button = new ButtonUI(String.valueOf(StringUtil.getLetterFromIndex(index)).toUpperCase(), Vector.NULL, Vector.NULL, ColorE.GRAY, ButtonUI.MouseButton.LEFT,() -> {
             //Set Containers
             settingSliderColumnWidth.setContainer(getFile().getColumnWidthSettings().get(index));
             deleteColumnButton.setAction(() -> {
                 getFile().deleteColumn(index);
                 getColumnButtonList().clear();
-                getFile().getColumnCount().set(getFile().getColumnCount().get() - 1); //Shift Column Count On Delete
                 for (int column = 0; column < getFile().getColumnCount().get(); column++) createColumnButton();
             });
 
@@ -326,17 +345,18 @@ public class EditorScene extends Scene {
             }
             columnSettingsBar.setTitle(title);
         }));
+        button.onMaintenance.unsubscribe();
     }
 
     private void createRowButton() {
         int index = rowButtonList.size();
-        rowButtonList.add(new ButtonUI(String.valueOf(index), Vector.NULL, Vector.NULL, ColorE.GRAY, ButtonUI.MouseButton.LEFT,() -> {
+        ButtonUI button;
+        rowButtonList.add(button = new ButtonUI(String.valueOf(index), Vector.NULL, Vector.NULL, ColorE.GRAY, ButtonUI.MouseButton.LEFT,() -> {
             //Set Containers
             settingSliderRowHeight.setContainer(getFile().getRowHeightSettings().get(index));
             deleteRowButton.setAction(() -> {
                 getFile().deleteRow(index);
                 getRowButtonList().clear();
-                getFile().getRowCount().set(getFile().getRowCount().get() - 1); //Shift Row Count On Delete
                 for (int row = 0; row < getFile().getRowCount().get(); row++) createRowButton();
             });
 
@@ -349,6 +369,7 @@ public class EditorScene extends Scene {
             }
             rowSettingsBar.setTitle(title);
         }));
+        button.onMaintenance.unsubscribe();
     }
 
     private void setCellSettingContainers(Cell cell) {
