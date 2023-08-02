@@ -136,24 +136,6 @@ public class EditorScene extends Scene {
     }
 
     @Override
-    public void animate() {
-        super.animate();
-        try {
-            //Animate Cells
-            for (int i = getRowStartIndex(); i < getRowEndIndex(); i++) {
-                for (Cell cell : getFile().getCellGrid().get(i)) cell.animate(this);
-            }
-            //Animate Column Buttons
-            for (ButtonUI button : columnButtonList) button.animate(this);
-
-            //Animate Row Buttons
-            for (int row = getRowStartIndex(); row < getRowEndIndex(); row++) rowButtonList.get(row).animate(this);
-
-        } catch (ConcurrentModificationException | IndexOutOfBoundsException ignored) {
-        }
-    }
-
-    @Override
     public void tick() {
         super.tick();
         try {
