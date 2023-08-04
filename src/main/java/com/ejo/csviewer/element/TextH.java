@@ -13,6 +13,7 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteBuffer;
 
+@Deprecated
 public class TextH extends ElementUI {
 
     private Font font;

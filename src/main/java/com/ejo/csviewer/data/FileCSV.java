@@ -1,7 +1,6 @@
 package com.ejo.csviewer.data;
 
 import com.ejo.csviewer.element.Cell;
-import com.ejo.csviewer.util.Util;
 import com.ejo.glowlib.file.CSVManager;
 import com.ejo.glowlib.math.Vector;
 import com.ejo.glowlib.misc.ColorE;
@@ -81,13 +80,13 @@ public class FileCSV {
 
     public void deleteRow(int rowIndex) {
         getCellGrid().remove(rowIndex);
-        getRowCount().set(getRowCount().get() - 1); //Shift Row Count On Delete
+        getRowCount().set(getRowCount().get() - 1);
         //TODO: Do Setting Transfer (Shift Up)
     }
 
     public void deleteColumn(int columnIndex) {
         for (ArrayList<Cell> row : getCellGrid()) row.remove(columnIndex);
-        getColumnCount().set(getColumnCount().get() - 1); //Shift Column Count On Delete
+        getColumnCount().set(getColumnCount().get() - 1);
         //TODO; Do Setting Transfer (Shift Left)
     }
 
