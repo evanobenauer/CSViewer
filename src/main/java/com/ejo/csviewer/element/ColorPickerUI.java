@@ -2,7 +2,7 @@ package com.ejo.csviewer.element;
 
 import com.ejo.glowlib.math.Vector;
 import com.ejo.glowlib.misc.ColorE;
-import com.ejo.glowlib.misc.Container;
+import com.ejo.glowlib.setting.Container;
 import com.ejo.glowui.scene.Scene;
 import com.ejo.glowui.scene.elements.widget.WidgetUI;
 
@@ -13,9 +13,7 @@ public class ColorPickerUI extends WidgetUI {
 
     public ColorPickerUI(String title, Vector pos, Vector size, Container<ColorE> container) {
         super(title, pos, size, true,true, null);
-        setAction(() -> {
-            getContainer().set(color);
-        });
+        setAction(() -> getContainer().set(color));
     }
 
     @Override

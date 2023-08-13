@@ -4,10 +4,10 @@ import com.ejo.csviewer.element.Cell;
 import com.ejo.glowlib.file.CSVManager;
 import com.ejo.glowlib.math.Vector;
 import com.ejo.glowlib.misc.ColorE;
-import com.ejo.glowlib.misc.Container;
+import com.ejo.glowlib.setting.Container;
 import com.ejo.glowlib.setting.Setting;
 import com.ejo.glowlib.setting.SettingManager;
-import com.ejo.glowlib.util.ListUtil;
+import com.ejo.glowlib.util.Util;
 
 import java.util.ArrayList;
 
@@ -32,10 +32,10 @@ public class FileCSV {
         this.settingManager = new SettingManager(getPath(),getName() + "_settings");
 
         ArrayList<String[]> loadedData = CSVManager.getDataFromCSV(getPath(), getName());
-        this.columnCount = new Container<>(ListUtil.getMaxRowSize(loadedData.toArray(new Object[0][0])));
+        this.columnCount = new Container<>(Util.getMaxRowSize(loadedData.toArray(new Object[0][0])));
         this.rowCount = new Container<>(loadedData.size());
 
-        for (int column = 0; column < ListUtil.getMaxRowSize(loadedData.toArray(new Object[0][0])); column++)
+        for (int column = 0; column < Util.getMaxRowSize(loadedData.toArray(new Object[0][0])); column++)
             this.columnWidthSettings.add(new Setting<>(getSettingManager(), "column" + column + "_" + "width", 100));
 
         for (int row = 0; row < loadedData.size(); row++)
@@ -117,14 +117,6 @@ public class FileCSV {
     }
 
 
-    public Container<Integer> getRowCount() {
-        return rowCount;
-    }
-
-    public Container<Integer> getColumnCount() {
-        return columnCount;
-    }
-
     public ArrayList<Setting<Integer>> getColumnWidthSettings() {
         return columnWidthSettings;
     }
@@ -135,6 +127,15 @@ public class FileCSV {
 
     public SettingManager getSettingManager() {
         return settingManager;
+    }
+
+
+    public Container<Integer> getRowCount() {
+        return rowCount;
+    }
+
+    public Container<Integer> getColumnCount() {
+        return columnCount;
     }
 
     public ArrayList<ArrayList<Cell>> getCellGrid() {

@@ -4,17 +4,20 @@ import com.ejo.csviewer.Main;
 import com.ejo.csviewer.data.FileCSV;
 import com.ejo.glowlib.math.Vector;
 import com.ejo.glowlib.misc.ColorE;
-import com.ejo.glowlib.misc.Container;
+import com.ejo.glowlib.misc.DoOnce;
+import com.ejo.glowlib.setting.Container;
 import com.ejo.glowlib.setting.Setting;
 import com.ejo.glowlib.time.StopWatch;
 import com.ejo.glowui.scene.Scene;
 import com.ejo.glowui.scene.elements.shape.RectangleUI;
 import com.ejo.glowui.scene.elements.widget.TextFieldUI;
+import com.ejo.glowui.util.DrawUtil;
 import com.ejo.glowui.util.Key;
 import com.ejo.glowui.util.Mouse;
 import com.ejo.glowui.util.QuickDraw;
 
 import java.awt.*;
+
 
 public class Cell extends TextFieldUI {
 
@@ -53,6 +56,7 @@ public class Cell extends TextFieldUI {
     }
 
     private final StopWatch cursorTimer = new StopWatch();
+    private boolean blinked = false;
 
     @Override
     protected void drawWidget(Scene scene, Vector mousePos) {
@@ -83,24 +87,35 @@ public class Cell extends TextFieldUI {
         //Draw Blinking Cursor
         if (isTyping()) {
             new RectangleUI(getPos(),getSize(),true,Math.max(2,getOutlineWidth().get().floatValue()),ColorE.GREEN).draw();
-            //cursorTimer.start();
-            //if (cursorTimer.hasTimePassedS(1)) cursorTimer.restart();
-            //int alpha = cursorTimer.hasTimePassedMS(500) ? 255 : 0;
+            int alpha = blinked ? 255 : 0;
 
             String[] text = getDisplayText().getText().split("\\\\n");
             String lastRow = text[text.length - 1];
             double lastRowWidth = getDisplayText().getFontMetrics().stringWidth(lastRow) * getDisplayText().getScale();
 
             double x = getPos().getX() + lastRowWidth + border;
-            double height = (getSize().getY() - 2 * border) / text.length;
-            double y = getPos().getY() + getSize().getY() - height - border/text.length;
-            QuickDraw.drawRect(new Vector(x, y), new Vector(2, height), getTextColor().get().setAlpha(255));
+            double height = size*getDisplayText().getScale();
+            double y = getPos().getY() + getSize().getY()/2 - height/2 + (double) size * text.length / 2 - border*1.5;
+            QuickDraw.drawRect(new Vector(x, y), new Vector(2, height), getTextColor().get().alpha(alpha));
         }
         if (isSelected()) new RectangleUI(getPos(),getSize(),true,Math.max(2,getOutlineWidth().get().floatValue()),ColorE.BLUE.green(175)).draw();
 
         //Draw Text Object
         getDisplayText().draw(scene, mousePos);
 
+    }
+
+    @Override
+    protected void tickWidget(Scene scene, Vector mousePos) {
+        super.tickWidget(scene, mousePos);
+
+        //Do Cursor Blink
+        cursorTimer.start();
+        if (cursorTimer.hasTimePassedS(1) && isTyping()) {
+            DrawUtil.forceRenderFrame();
+            blinked = !blinked;
+            cursorTimer.restart();
+        }
     }
 
     @Override
