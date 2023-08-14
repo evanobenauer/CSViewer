@@ -18,6 +18,7 @@ public class FileCSV {
 
     private final SettingManager settingManager;
 
+    //TODO; The larger the file, the more memory it takes up, and the worse the performance
     private final ArrayList<ArrayList<Cell>> grid = new ArrayList<>();
     private final ArrayList<Setting<Integer>> columnWidthSettings = new ArrayList<>();
     private final ArrayList<Setting<Integer>> rowHeightSettings = new ArrayList<>();
@@ -36,10 +37,10 @@ public class FileCSV {
         this.rowCount = new Container<>(loadedData.size());
 
         for (int column = 0; column < Util.getMaxRowSize(loadedData.toArray(new Object[0][0])); column++)
-            this.columnWidthSettings.add(new Setting<>(getSettingManager(), "column" + column + "_" + "width", 100));
+            this.columnWidthSettings.add(new Setting<>(getSettingManager(), getColumnWidthSettingName(column), 100));
 
         for (int row = 0; row < loadedData.size(); row++)
-            this.rowHeightSettings.add(new Setting<>(getSettingManager(), "row" + row + "_" + "height", 20));
+            this.rowHeightSettings.add(new Setting<>(getSettingManager(), getRowHeightSettingName(row), 20));
     }
 
     public void createGrid() {
@@ -61,7 +62,7 @@ public class FileCSV {
             newRow.add(cell);
         }
         getCellGrid().add(newRow);
-        getRowHeightSettings().add(new Setting<>(getSettingManager(), "row" + rowCount + "_" + "height", 20));
+        getRowHeightSettingsList().add(new Setting<>(getSettingManager(), getRowHeightSettingName(rowCount), 20));
 
         getRowCount().set(getRowCount().get() + 1);
     }
@@ -69,10 +70,10 @@ public class FileCSV {
     public void addColumn() {
         int columnCount = getCellGrid().get(0).size();
 
-        for(ArrayList<Cell> row : getCellGrid()) {
-            Cell cell = new Cell(this, columnCount, getCellGrid().indexOf(row), Vector.NULL, Vector.NULL, ColorE.BLACK,new ColorE(200, 200, 200), ColorE.BLACK);
-            row.add(cell);
-            getColumnWidthSettings().add(new Setting<>(getSettingManager(), "column" + columnCount + "_" + "width", 100));
+        for (int row = 0; row < getCellGrid().size(); row++) {
+            Cell cell = new Cell(this, columnCount, row, Vector.NULL, Vector.NULL, ColorE.BLACK,new ColorE(200, 200, 200), ColorE.BLACK);
+            getCellGrid().get(row).add(cell);
+            getColumnWidthSettingsList().add(new Setting<>(getSettingManager(), getColumnWidthSettingName(columnCount), 100));
         }
 
         getColumnCount().set(getColumnCount().get() + 1);
@@ -116,20 +117,6 @@ public class FileCSV {
         }
     }
 
-
-    public ArrayList<Setting<Integer>> getColumnWidthSettings() {
-        return columnWidthSettings;
-    }
-
-    public ArrayList<Setting<Integer>> getRowHeightSettings() {
-        return rowHeightSettings;
-    }
-
-    public SettingManager getSettingManager() {
-        return settingManager;
-    }
-
-
     public Container<Integer> getRowCount() {
         return rowCount;
     }
@@ -138,10 +125,31 @@ public class FileCSV {
         return columnCount;
     }
 
+    private String getColumnWidthSettingName(int index) {
+        return "column" + index + "_" + "width";
+    }
+
+    private String getRowHeightSettingName(int index) {
+        return "row" + index + "_" + "height";
+    }
+
+
+    public ArrayList<Setting<Integer>> getColumnWidthSettingsList() {
+        return columnWidthSettings;
+    }
+
+    public ArrayList<Setting<Integer>> getRowHeightSettingsList() {
+        return rowHeightSettings;
+    }
+
+    public SettingManager getSettingManager() {
+        return settingManager;
+    }
+
+
     public ArrayList<ArrayList<Cell>> getCellGrid() {
         return grid;
     }
-
 
     public String getPath() {
         return path;
