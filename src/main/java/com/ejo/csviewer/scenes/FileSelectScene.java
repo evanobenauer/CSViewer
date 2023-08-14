@@ -26,7 +26,7 @@ public class FileSelectScene extends Scene {
     private final TextFieldUI fieldFilePath = new TextFieldUI(Vector.NULL, new Vector(300, 20), ColorE.BLACK, filePath, "Path", false);
     private final TextFieldUI fieldFileName = new TextFieldUI(Vector.NULL, new Vector(100, 20), ColorE.BLACK, fileName, "Name", false);
 
-    private final TextUI textWarning = new TextUI("File Not Found!",Fonts.getDefaultFont(16),Vector.NULL,new ColorE(50,50,255,255));
+    private final TextUI textWarning = new TextUI("File Not Found!",Fonts.getDefaultFont(16),Vector.NULL,new ColorE(255,50,50,255));
 
     private final ButtonUI buttonEnter = new ButtonUI("Launch!",Vector.NULL,new Vector(200,40), new ColorE(50,150,50,200), ButtonUI.MouseButton.LEFT,() -> {
         mainSettingManager.saveAll();

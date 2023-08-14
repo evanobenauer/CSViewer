@@ -1,10 +1,8 @@
 package com.ejo.csviewer.element;
 
-import com.ejo.csviewer.Main;
 import com.ejo.csviewer.data.FileCSV;
 import com.ejo.glowlib.math.Vector;
 import com.ejo.glowlib.misc.ColorE;
-import com.ejo.glowlib.misc.DoOnce;
 import com.ejo.glowlib.setting.Container;
 import com.ejo.glowlib.setting.Setting;
 import com.ejo.glowlib.time.StopWatch;
@@ -64,11 +62,10 @@ public class Cell extends TextFieldUI {
         QuickDraw.drawRect(getPos(),getSize(),getFillColor().get());
         new RectangleUI(getPos(),getSize(),true,getOutlineWidth().get().floatValue(),getOutlineColor().get()).draw();
 
-        double border = 4;//getSize().getY()/5;
+        double border = 4;
 
         //Prepare Text
         String msg = (hasTitle() ? getTitle() + ": " : "") + getContainer().get();
-        //int size = (int) (getSize().getY() / 1.5);
         int size = 13;
         setUpDisplayText(msg,border,size);
         getDisplayText().setPos(getPos().getAdded(border, getSize().getY() / 2 - getDisplayText().getHeight() / 2));

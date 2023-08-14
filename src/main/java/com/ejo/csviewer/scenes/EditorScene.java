@@ -204,6 +204,17 @@ public class EditorScene extends Scene {
         } catch (IndexOutOfBoundsException ignored) {
         }
 
+        //Draw Button Hover Fade for Columns and Rows when a cell is hovered
+        for (int row = getRowStartIndex(); row <= getRowEndIndex(); row++) {
+            for (int column = getColumnStartIndex(); column <= getColumnEndIndex(); column++) {
+                Cell cell = getFile().getCellGrid().get(row).get(column);
+                if (cell.isMouseOver()) {
+                    QuickDraw.drawRect(getColumnButtonList().get(column).getPos(),getColumnButtonList().get(column).getSize(),ColorE.WHITE.alpha(50));
+                    QuickDraw.drawRect(getRowButtonList().get(row).getPos(),getRowButtonList().get(row).getSize(),ColorE.WHITE.alpha(50));
+                }
+            }
+        }
+
         super.draw();
 
         //Draw Add Column Text
@@ -211,9 +222,7 @@ public class EditorScene extends Scene {
             new TextH("Add Column", Fonts.getDefaultFont(18), buttonAddColumn.getPos(), ColorE.WHITE)
                     .drawCentered(this, getWindow().getScaledMousePos(), buttonAddColumn.getSize());
 
-        QuickDraw.drawFPSTPS(this, new Vector(22, 2), 10, false);
-
-        //TODO: When a cell is hovered, create a hover-fade over the row and column buttons
+        QuickDraw.drawFPSTPS(this, new Vector(2, getSize().getY() - 28), 10, false);
     }
 
     private void drawBackgroundFade() {
@@ -275,6 +284,9 @@ public class EditorScene extends Scene {
             if (key == Key.KEY_DOWN.getId()) setRowStartIndex(getRowStartIndex() + 1);
             if (key == Key.KEY_RIGHT.getId()) setColumnStartIndex(getColumnStartIndex() + 1);
             if (key == Key.KEY_LEFT.getId()) setColumnStartIndex(getColumnStartIndex() - 1);
+
+            if (key == Key.KEY_EQUALS.getId()) getWindow().setUIScale(getWindow().getUIScale() + .05);
+            if (key == Key.KEY_MINUS.getId()) getWindow().setUIScale(Math.max(.05,getWindow().getUIScale() - .05));
         }
     }
 
