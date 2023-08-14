@@ -209,8 +209,8 @@ public class EditorScene extends Scene {
             for (int column = getColumnStartIndex(); column <= getColumnEndIndex(); column++) {
                 Cell cell = getFile().getCellGrid().get(row).get(column);
                 if (cell.isMouseOver()) {
-                    QuickDraw.drawRect(getColumnButtonList().get(column).getPos(),getColumnButtonList().get(column).getSize(),ColorE.WHITE.alpha(50));
-                    QuickDraw.drawRect(getRowButtonList().get(row).getPos(),getRowButtonList().get(row).getSize(),ColorE.WHITE.alpha(50));
+                    QuickDraw.drawRect(getColumnButtonList().get(column).getPos(),getColumnButtonList().get(column).getSize(),ColorE.WHITE.alpha(25));
+                    QuickDraw.drawRect(getRowButtonList().get(row).getPos(),getRowButtonList().get(row).getSize(),ColorE.WHITE.alpha(25));
                 }
             }
         }
