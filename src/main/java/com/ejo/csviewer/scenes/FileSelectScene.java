@@ -30,7 +30,7 @@ public class FileSelectScene extends Scene {
 
     private final ButtonUI buttonEnter = new ButtonUI("Launch!",Vector.NULL,new Vector(200,40), new ColorE(50,150,50,200), ButtonUI.MouseButton.LEFT,() -> {
         mainSettingManager.saveAll();
-        File file = new File(filePath.get() + "/" + fileName.get() + ".csv");
+        File file = new File((filePath.get().equals("") ? "" : filePath.get() + "/") + fileName.get() + ".csv");
         if (file.exists() && !fileName.get().equals("")) {
             getWindow().setScene(new EditorScene(new FileCSV(filePath.get(), fileName.get())));
         }
