@@ -41,8 +41,8 @@ public class EditorScene extends Scene {
     private int columnStartIndex = 0;
 
 
-    private final ColorE settingsBarColor = new ColorE(100, 100, 100);
-    private final ColorE green = new ColorE(50, 150, 50, 200);
+    private final ColorE BAR_COLOR = new ColorE(100, 100, 100);
+    private final ColorE CSV_GREEN = new ColorE(50, 150, 50, 200);
 
     private ToggleUI toggleBold;
     private ToggleUI toggleItalic;
@@ -50,10 +50,10 @@ public class EditorScene extends Scene {
     private final ColorPickerUI colorPickerText;
     private final ColorPickerUI colorPickerFill;
     private final ColorPickerUI colorPickerOutline;
-    private final SideBarUI cellSettingsBar = new SideBarUI("Cell Settings", SideBarUI.Type.TOP, 40, false, settingsBarColor,
-            toggleBold = new ToggleUI("B", new Vector(40, 10), new Vector(20, 20), green, new Container<>(false)),
-            toggleItalic = new ToggleUI("I", new Vector(70, 10), new Vector(20, 20), green, new Container<>(false)),
-            sliderOutlineWidth = new SliderUI<>("Outline", new Vector(100, 10), new Vector(100, 20), green, new Container<>(0d), .6d, 3d, .2d, SliderUI.Type.FLOAT, true),
+    private final SideBarUI cellSettingsBar = new SideBarUI("Cell Settings", SideBarUI.Type.TOP, 40, false, BAR_COLOR,
+            toggleBold = new ToggleUI("B", new Vector(40, 10), new Vector(20, 20), CSV_GREEN, new Container<>(false)),
+            toggleItalic = new ToggleUI("I", new Vector(70, 10), new Vector(20, 20), CSV_GREEN, new Container<>(false)),
+            sliderOutlineWidth = new SliderUI<>("Outline", new Vector(100, 10), new Vector(100, 20), CSV_GREEN, new Container<>(0d), .6d, 3d, .2d, SliderUI.Type.FLOAT, true),
             new TextUI("Text", Fonts.getDefaultFont(8), new Vector(212, 0), ColorE.WHITE),
             colorPickerText = new ColorPickerUI(new Vector(210, 10), new Container<>(ColorE.NULL)),
             new TextUI("Fill", Fonts.getDefaultFont(8), new Vector(245, 0), ColorE.WHITE),
@@ -67,9 +67,9 @@ public class EditorScene extends Scene {
     private final ColorPickerUI colorPickerFillColumn;
     private final ColorPickerUI colorPickerOutlineColumn;
     private final ButtonUI buttonDeleteColumn;
-    private final SideBarUI columnSettingsBar = new SideBarUI("Column Settings", SideBarUI.Type.TOP, 40, false, settingsBarColor,
-            sliderColumnWidth = new SliderUI<>("Width", new Vector(40, 10), new Vector(200, 20), green, new Container<>(100), 20, 1000, 1, SliderUI.Type.INTEGER, true),
-            buttonDeleteColumn = new ButtonUI("Delete Column", new Vector(250, 10), new Vector(100, 20), green, ButtonUI.MouseButton.LEFT, null),
+    private final SideBarUI columnSettingsBar = new SideBarUI("Column Settings", SideBarUI.Type.TOP, 40, false, BAR_COLOR,
+            sliderColumnWidth = new SliderUI<>("Width", new Vector(40, 10), new Vector(200, 20), CSV_GREEN, new Container<>(100), 20, 1000, 1, SliderUI.Type.INTEGER, true),
+            buttonDeleteColumn = new ButtonUI("Delete Column", new Vector(250, 10), new Vector(100, 20), CSV_GREEN, ButtonUI.MouseButton.LEFT, null),
             new TextUI("Text", Fonts.getDefaultFont(8), new Vector(212 + 40, 0), ColorE.WHITE),
             colorPickerTextColumn = new ColorPickerUI(new Vector(210 + 40, 10), new Container<>(ColorE.BLACK)),
             new TextUI("Fill", Fonts.getDefaultFont(8), new Vector(245 + 40, 0), ColorE.WHITE),
@@ -83,9 +83,9 @@ public class EditorScene extends Scene {
     private final ColorPickerUI colorPickerFillRow;
     private final ColorPickerUI colorPickerOutlineRow;
     private final ButtonUI buttonDeleteRow;
-    private final SideBarUI rowSettingsBar = new SideBarUI("Row Settings", SideBarUI.Type.TOP, 40, false, settingsBarColor,
-            settingSliderRowHeight = new SliderUI<>("Height", new Vector(40, 10), new Vector(200, 20), green, new Container<>(20), 20, 500, 1, SliderUI.Type.INTEGER, true),
-            buttonDeleteRow = new ButtonUI("Delete Row", new Vector(250, 10), new Vector(100, 20), green, ButtonUI.MouseButton.LEFT, null),
+    private final SideBarUI rowSettingsBar = new SideBarUI("Row Settings", SideBarUI.Type.TOP, 40, false, BAR_COLOR,
+            settingSliderRowHeight = new SliderUI<>("Height", new Vector(40, 10), new Vector(200, 20), CSV_GREEN, new Container<>(20), 20, 500, 1, SliderUI.Type.INTEGER, true),
+            buttonDeleteRow = new ButtonUI("Delete Row", new Vector(250, 10), new Vector(100, 20), CSV_GREEN, ButtonUI.MouseButton.LEFT, null),
             new TextUI("Text", Fonts.getDefaultFont(8), new Vector(212 + 40, 0), ColorE.WHITE),
             colorPickerTextRow = new ColorPickerUI(new Vector(210 + 40, 10), new Container<>(ColorE.BLACK)),
             new TextUI("Fill", Fonts.getDefaultFont(8), new Vector(245 + 40, 0), ColorE.WHITE),
@@ -177,11 +177,11 @@ public class EditorScene extends Scene {
         drawCells(startPos, 1);
 
         //Draw Add Row Button
+        buttonAddRow.setPos(new Vector(startPos.getY() + Math.max(0,getGridWidth() / 2 - buttonAddRow.getSize().getX() / 2), getFile().getCellGrid().get(getRowEndIndex()).get(0).getPos().getY() + getFile().getCellGrid().get(getRowEndIndex()).get(0).getSize().getY() + 10));
         buttonAddRow.setEnabled(getRowEndIndex() == (getFile().getCellGrid().size() - 1));
-        buttonAddRow.setPos(new Vector(getSize().getX() / 2 - buttonAddRow.getSize().getX() / 2, getFile().getCellGrid().get(getRowEndIndex()).get(0).getPos().getY() + getFile().getCellGrid().get(getRowEndIndex()).get(0).getSize().getY() + 10));
 
         //Draw Add Column Button
-        buttonAddColumn.setPos(new Vector(getColumnButtonList().get(getColumnEndIndex()).getPos().getX() + getColumnButtonList().get(getColumnEndIndex()).getSize().getX() + 10, getSize().getY() / 2 - buttonAddColumn.getSize().getY() / 2));
+        buttonAddColumn.setPos(new Vector(getColumnButtonList().get(getColumnEndIndex()).getPos().getX() + getColumnButtonList().get(getColumnEndIndex()).getSize().getX() + 10,startPos.getX() + Math.max(0,getGridHeight() / 2 - buttonAddColumn.getSize().getY() / 2)));
         buttonAddColumn.setEnabled(buttonAddColumn.getPos().getX() < getSize().getX());
 
         //Draw Scroll Right/Left Buttons
@@ -563,6 +563,24 @@ public class EditorScene extends Scene {
         return "Cell: " + String.valueOf(StringUtil.getLetterFromIndex(column)).toUpperCase() + row + " Settings";
     }
 
+    private double getGridWidth() {
+        double width = 0;
+        for (int i = getColumnStartIndex(); i < getColumnEndIndex(); i++) {
+            ButtonUI columnButton = getColumnButtonList().get(i);
+            width += columnButton.getSize().getX();
+        }
+        return width;
+    }
+
+    private double getGridHeight() {
+        double height = 0;
+        for (int i = getRowStartIndex(); i < getRowEndIndex(); i++) {
+            ButtonUI rowButton = getRowButtonList().get(i);
+            height += rowButton.getSize().getY();
+        }
+        System.out.println(height);
+        return height;
+    }
 
     public ArrayList<ButtonUI> getColumnButtonList() {
         return columnButtonList;
