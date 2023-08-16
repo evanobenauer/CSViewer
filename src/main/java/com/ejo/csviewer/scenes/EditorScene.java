@@ -29,20 +29,20 @@ import java.util.ConcurrentModificationException;
 
 public class EditorScene extends Scene {
 
+    private static final ColorE BAR_COLOR = new ColorE(100, 100, 100);
+    private static final ColorE CSV_GREEN = new ColorE(50, 150, 50, 200);
+
     private final FileCSV file;
 
     private final ArrayList<ButtonUI> columnButtonList = new ArrayList<>();
     private final ArrayList<ButtonUI> rowButtonList = new ArrayList<>();
 
-    private int selectedColumnIndex = -1;
-    private int selectedRowIndex = -1;
+    private int indexSelectedColumn = -1;
+    private int indexSelectedRow = -1;
 
-    private int rowStartIndex = 0;
-    private int columnStartIndex = 0;
+    private int indexRowStart = 0;
+    private int indexColumnStart = 0;
 
-
-    private final ColorE BAR_COLOR = new ColorE(100, 100, 100);
-    private final ColorE CSV_GREEN = new ColorE(50, 150, 50, 200);
 
     private ToggleUI toggleBold;
     private ToggleUI toggleItalic;
@@ -50,7 +50,7 @@ public class EditorScene extends Scene {
     private final ColorPickerUI colorPickerText;
     private final ColorPickerUI colorPickerFill;
     private final ColorPickerUI colorPickerOutline;
-    private final SideBarUI cellSettingsBar = new SideBarUI("Cell Settings", SideBarUI.Type.TOP, 40, false, BAR_COLOR,
+    private final SideBarUI barCellSettings = new SideBarUI("Cell Settings", SideBarUI.Type.TOP, 40, false, BAR_COLOR,
             toggleBold = new ToggleUI("B", new Vector(40, 10), new Vector(20, 20), CSV_GREEN, new Container<>(false)),
             toggleItalic = new ToggleUI("I", new Vector(70, 10), new Vector(20, 20), CSV_GREEN, new Container<>(false)),
             sliderOutlineWidth = new SliderUI<>("Outline", new Vector(100, 10), new Vector(100, 20), CSV_GREEN, new Container<>(0d), .6d, 3d, .2d, SliderUI.Type.FLOAT, true),
@@ -67,7 +67,7 @@ public class EditorScene extends Scene {
     private final ColorPickerUI colorPickerFillColumn;
     private final ColorPickerUI colorPickerOutlineColumn;
     private final ButtonUI buttonDeleteColumn;
-    private final SideBarUI columnSettingsBar = new SideBarUI("Column Settings", SideBarUI.Type.TOP, 40, false, BAR_COLOR,
+    private final SideBarUI barColumnSettings = new SideBarUI("Column Settings", SideBarUI.Type.TOP, 40, false, BAR_COLOR,
             sliderColumnWidth = new SliderUI<>("Width", new Vector(40, 10), new Vector(200, 20), CSV_GREEN, new Container<>(100), 20, 1000, 1, SliderUI.Type.INTEGER, true),
             buttonDeleteColumn = new ButtonUI("Delete Column", new Vector(250, 10), new Vector(100, 20), CSV_GREEN, ButtonUI.MouseButton.LEFT, null),
             new TextUI("Text", Fonts.getDefaultFont(8), new Vector(212 + 40, 0), ColorE.WHITE),
@@ -83,7 +83,7 @@ public class EditorScene extends Scene {
     private final ColorPickerUI colorPickerFillRow;
     private final ColorPickerUI colorPickerOutlineRow;
     private final ButtonUI buttonDeleteRow;
-    private final SideBarUI rowSettingsBar = new SideBarUI("Row Settings", SideBarUI.Type.TOP, 40, false, BAR_COLOR,
+    private final SideBarUI barRowSettings = new SideBarUI("Row Settings", SideBarUI.Type.TOP, 40, false, BAR_COLOR,
             settingSliderRowHeight = new SliderUI<>("Height", new Vector(40, 10), new Vector(200, 20), CSV_GREEN, new Container<>(20), 20, 500, 1, SliderUI.Type.INTEGER, true),
             buttonDeleteRow = new ButtonUI("Delete Row", new Vector(250, 10), new Vector(100, 20), CSV_GREEN, ButtonUI.MouseButton.LEFT, null),
             new TextUI("Text", Fonts.getDefaultFont(8), new Vector(212 + 40, 0), ColorE.WHITE),
@@ -97,14 +97,14 @@ public class EditorScene extends Scene {
     @SuppressWarnings("ALL")
     private final ButtonUI buttonSave = new ButtonUI("Save", new Vector(20, 50), new Vector(20, 20), new ColorE(50, 150, 50, 200), ButtonUI.MouseButton.LEFT, () -> getFile().save());
 
-    private final ButtonUI buttonAddRow = new ButtonUI("Add Row", new Vector(30, 10), new Vector(200, 20), ColorE.GRAY, ButtonUI.MouseButton.LEFT, () -> {
+    private final ButtonUI buttonNewRow = new ButtonUI("Add Row", new Vector(30, 10), new Vector(200, 20), ColorE.GRAY, ButtonUI.MouseButton.LEFT, () -> {
         getFile().addRow();
-        createNewRowButton();
+        addButtonNewRow();
     });
 
-    private final ButtonUI buttonAddColumn = new ButtonUI(new Vector(50, 10), new Vector(20, 200), ColorE.GRAY, ButtonUI.MouseButton.LEFT, () -> {
+    private final ButtonUI buttonNewColumn = new ButtonUI(new Vector(50, 10), new Vector(20, 200), ColorE.GRAY, ButtonUI.MouseButton.LEFT, () -> {
         getFile().addColumn();
-        createNewColumnButton();
+        addButtonNewColumn();
     });
 
     private final ButtonUI buttonScrollLeft = new ButtonUI("<", Vector.NULL, new Vector(20, 40), ColorE.GRAY, ButtonUI.MouseButton.LEFT, () -> {
@@ -140,23 +140,22 @@ public class EditorScene extends Scene {
     public EditorScene(FileCSV file) {
         super(file.getName() + " Scene");
         this.file = file;
-
-        addElements(buttonSave, buttonAddRow, buttonAddColumn, cellSettingsBar, columnSettingsBar, rowSettingsBar, buttonScrollLeft, buttonScrollRight);
+        addElements(buttonSave, buttonNewRow, buttonNewColumn, barCellSettings, barColumnSettings, barRowSettings, buttonScrollLeft, buttonScrollRight);
 
         //Create Grid, Load Settings
         file.createGrid();
         file.load();
 
         //Create Buttons
-        for (int column = 0; column < getFile().getColumnCount().get(); column++) createNewColumnButton();
-        for (int row = 0; row < getFile().getRowCount().get(); row++) createNewRowButton();
+        for (int column = 0; column < getFile().getColumnCount().get(); column++) addButtonNewColumn();
+        for (int row = 0; row < getFile().getRowCount().get(); row++) addButtonNewRow();
 
         //Set Setting Data
         toggleBold.getDisplayText().setModifier(Font.BOLD);
         toggleItalic.getDisplayText().setModifier(Font.ITALIC);
-        cellSettingsBar.getButton().setEnabled(false);
-        columnSettingsBar.getButton().setEnabled(false);
-        rowSettingsBar.getButton().setEnabled(false);
+        barCellSettings.getButton().setEnabled(false);
+        barColumnSettings.getButton().setEnabled(false);
+        barRowSettings.getButton().setEnabled(false);
 
         animationInjection.subscribe();
 
@@ -165,80 +164,44 @@ public class EditorScene extends Scene {
 
     @Override
     public void draw() {
-        drawBackgroundFade();
+        drawBackgroundGradient();
 
-        //Draw Sheet Title
+        //Draw File Name
         TextUI title = new TextUI(getFile().getName(), new Font("Arial Black", Font.ITALIC, 40), Vector.NULL.getAdded(0, 22), ColorE.BLACK);
         title.drawCentered(this, getWindow().getScaledMousePos(), new Vector(getSize().getX(), 0));
 
-        //Draw Cells & Buttons
-        Vector startPos = new Vector(40, 70);
-        drawButtons(startPos, 1);
-        drawCells(startPos, 1);
+        int buttonSize = 20;
+        drawButtons(getGridPos(), 1,buttonSize);
+        drawCells(getGridPos(), 1);
+        drawButtonHoverHighlight();
+        drawSelectionRectangles(buttonSize);
 
-        //Draw Add Row Button
-        buttonAddRow.setPos(new Vector(startPos.getY() + Math.max(0,getGridWidth() / 2 - buttonAddRow.getSize().getX() / 2), getFile().getCellGrid().get(getRowEndIndex()).get(0).getPos().getY() + getFile().getCellGrid().get(getRowEndIndex()).get(0).getSize().getY() + 10));
-        buttonAddRow.setEnabled(getRowEndIndex() == (getFile().getCellGrid().size() - 1));
 
-        //Draw Add Column Button
-        buttonAddColumn.setPos(new Vector(getColumnButtonList().get(getColumnEndIndex()).getPos().getX() + getColumnButtonList().get(getColumnEndIndex()).getSize().getX() + 10,startPos.getX() + Math.max(0,getGridHeight() / 2 - buttonAddColumn.getSize().getY() / 2)));
-        buttonAddColumn.setEnabled(buttonAddColumn.getPos().getX() < getSize().getX());
+        //Update Add Row Button
+        buttonNewRow.setEnabled(getRowEndIndex() == (getFile().getCellGrid().size() - 1));
+        if (buttonNewRow.shouldRender()) buttonNewRow.setPos(new Vector(Math.max(0,getGridPos().getY() + buttonSize + getGridWidth() / 2 - buttonNewRow.getSize().getX() / 2), getGridEndY() + 10));
 
-        //Draw Scroll Right/Left Buttons
-        buttonScrollRight.setPos(new Vector(getSize().getX() - buttonScrollRight.getSize().getX(), 0));
-        buttonScrollRight.setEnabled(getColumnButtonList().get(getColumnEndIndex()).getPos().getX() + getColumnButtonList().get(getColumnEndIndex()).getSize().getX() + buttonAddColumn.getSize().getX() + 10 > getSize().getX());
+        //Update Add Column Button
+        buttonNewColumn.setEnabled(buttonNewColumn.getPos().getX() < getSize().getX());
+        if (buttonNewColumn.shouldRender()) buttonNewColumn.setPos(new Vector(getGridEndX() + 10,getGridPos().getY() + Math.max(0,getGridHeight() / 2 - buttonNewColumn.getSize().getY() / 2)));
+
+        //Update Scroll Right/Left Buttons
         buttonScrollLeft.setEnabled(getColumnStartIndex() > 0);
+        buttonScrollRight.setEnabled(getGridEndX() + buttonNewColumn.getSize().getX() + 10 > getSize().getX());
+        if (buttonScrollRight.shouldRender()) buttonScrollRight.setPos(new Vector(getSize().getX() - buttonScrollRight.getSize().getX(), 0));
 
-        //Draw Delete Row Button
+        //Update Delete Row/Column Buttons
         buttonDeleteRow.setPos(new Vector(getSize().getX() - buttonDeleteRow.getSize().getX() - 30, buttonDeleteRow.getPos().getY()));
-
-        //Draw Delete Column Button
         buttonDeleteColumn.setPos(new Vector(getSize().getX() - buttonDeleteColumn.getSize().getX() - 30,buttonDeleteColumn.getPos().getY()));
 
-        //Draw Column/Row Selection Rectangles
-        try {
-            if (selectedColumnIndex >= getColumnStartIndex() && selectedColumnIndex <= getColumnEndIndex())
-                new RectangleUI(getColumnButtonList().get(selectedColumnIndex).getPos(), new Vector(getColumnButtonList().get(selectedColumnIndex).getSize().getX(), getRowButtonList().get(getRowEndIndex()).getPos().getY() - getColumnButtonList().get(selectedColumnIndex).getPos().getY() + getRowButtonList().get(getRowEndIndex()).getSize().getY()), true, 2, ColorE.BLUE.green(175)).draw();
-            if (selectedRowIndex >= getRowStartIndex() && selectedRowIndex <= getRowEndIndex())
-                new RectangleUI(getRowButtonList().get(selectedRowIndex).getPos(), new Vector(getColumnButtonList().get(getColumnEndIndex()).getPos().getX() + getColumnButtonList().get(getColumnEndIndex()).getSize().getX() - getRowButtonList().get(selectedRowIndex).getPos().getX(), getRowButtonList().get(selectedRowIndex).getSize().getY()), true, 2, ColorE.BLUE.green(175)).draw();
-        } catch (IndexOutOfBoundsException ignored) {
-        }
-
-        //Draw Button Hover Fade for Columns and Rows when a cell is hovered
-        for (int row = getRowStartIndex(); row <= getRowEndIndex(); row++) {
-            for (int column = getColumnStartIndex(); column <= getColumnEndIndex(); column++) {
-                Cell cell = getFile().getCellGrid().get(row).get(column);
-                if (cell.isMouseOver()) {
-                    QuickDraw.drawRect(getColumnButtonList().get(column).getPos(),getColumnButtonList().get(column).getSize(),ColorE.WHITE.alpha(25));
-                    QuickDraw.drawRect(getRowButtonList().get(row).getPos(),getRowButtonList().get(row).getSize(),ColorE.WHITE.alpha(25));
-                }
-            }
-        }
-
+        //Draw All Elements
         super.draw();
 
         //Draw Add Column Text
-        if (buttonAddColumn.shouldRender())
-            new TextH("Add Column", Fonts.getDefaultFont(18), buttonAddColumn.getPos(), ColorE.WHITE)
-                    .drawCentered(this, getWindow().getScaledMousePos(), buttonAddColumn.getSize());
+        if (buttonNewColumn.shouldRender())
+            new TextH("Add Column", Fonts.getDefaultFont(18), buttonNewColumn.getPos(), ColorE.WHITE).drawCentered(this, getWindow().getScaledMousePos(), buttonNewColumn.getSize());
 
         QuickDraw.drawFPSTPS(this, new Vector(2, getSize().getY() - 28), 10, false);
-    }
-
-    private void drawBackgroundFade() {
-        Vector pos = Vector.NULL;
-        Vector size = getSize();
-        GL11.glBegin(GL11.GL_QUADS);
-
-        GL11.glColor4f(.6f, .6f, .6f, 1);
-        GL11.glVertex2f((float) pos.getX(), (float) pos.getY());
-        GL11.glVertex2f((float) pos.getX() + (float) size.getX(), (float) pos.getY());
-        GL11.glColor4f(.3f, .4f, .3f, 1);
-        GL11.glVertex2f((float) pos.getX() + (float) size.getX(), (float) pos.getY() + (float) size.getY());
-        GL11.glVertex2f((float) pos.getX(), (float) pos.getY() + (float) size.getY());
-
-        GL11.glEnd();
-        GL11.glColor4f(1, 1, 1, 1);
     }
 
     @Override
@@ -312,7 +275,11 @@ public class EditorScene extends Scene {
         } catch (ConcurrentModificationException | IndexOutOfBoundsException ignored) {
         }
 
-        mouseElements(button, action, mods, mousePos);
+        //TODO: Add JavaDOC Comments
+        updateCloseSettingsBar();
+        updateColumnColor();
+        updateRowColor();
+        updateCellSelection(button,action);
     }
 
     @Override
@@ -321,6 +288,22 @@ public class EditorScene extends Scene {
         setRowStartIndex(getRowStartIndex() - scroll);
     }
 
+
+    private void drawBackgroundGradient() {
+        Vector pos = Vector.NULL;
+        Vector size = getSize();
+        GL11.glBegin(GL11.GL_QUADS);
+
+        GL11.glColor4f(.6f, .6f, .6f, 1);
+        GL11.glVertex2f((float) pos.getX(), (float) pos.getY());
+        GL11.glVertex2f((float) pos.getX() + (float) size.getX(), (float) pos.getY());
+        GL11.glColor4f(.3f, .4f, .3f, 1);
+        GL11.glVertex2f((float) pos.getX() + (float) size.getX(), (float) pos.getY() + (float) size.getY());
+        GL11.glVertex2f((float) pos.getX(), (float) pos.getY() + (float) size.getY());
+
+        GL11.glEnd();
+        GL11.glColor4f(1, 1, 1, 1);
+    }
 
     public void drawCells(Vector gridPos, int separation) throws ConcurrentModificationException {
         int x = (int) gridPos.getX();
@@ -339,8 +322,7 @@ public class EditorScene extends Scene {
         }
     }
 
-    public void drawButtons(Vector gridPos, int separation) throws ConcurrentModificationException {
-        int size = 20;
+    public void drawButtons(Vector gridPos, int separation, int size) throws ConcurrentModificationException {
         int x = (int) gridPos.getX();
         int y = (int) gridPos.getY() - size - separation;
 
@@ -362,82 +344,89 @@ public class EditorScene extends Scene {
         }
     }
 
-    //TODO: Add JavaDOC Comments
-    private void mouseElements(int button, int action, int mods, Vector mousePos) {
-        updateCloseSettingsBar();
+    private void drawButtonHoverHighlight() {
+        for (int row = getRowStartIndex(); row <= getRowEndIndex(); row++) {
+            for (int column = getColumnStartIndex(); column <= getColumnEndIndex(); column++) {
+                Cell cell = getFile().getCellGrid().get(row).get(column);
+                if (cell.isMouseOver()) {
+                    QuickDraw.drawRect(getColumnButtonList().get(column).getPos(),getColumnButtonList().get(column).getSize(),ColorE.WHITE.alpha(25));
+                    QuickDraw.drawRect(getRowButtonList().get(row).getPos(),getRowButtonList().get(row).getSize(),ColorE.WHITE.alpha(25));
+                }
+            }
+        }
+    }
 
-        setColumnColor();
-        setRowColor();
+    private void drawSelectionRectangles(int buttonSize) {
+        try {
+            if (indexSelectedColumn >= getColumnStartIndex() && indexSelectedColumn <= getColumnEndIndex())
+                new RectangleUI(getColumnButtonList().get(indexSelectedColumn).getPos(), new Vector(getColumnButtonList().get(indexSelectedColumn).getSize().getX(), getGridEndY() - getGridPos().getY() + buttonSize), true, 2, ColorE.BLUE.green(175)).draw();
+            if (indexSelectedRow >= getRowStartIndex() && indexSelectedRow <= getRowEndIndex())
+                new RectangleUI(getRowButtonList().get(indexSelectedRow).getPos(), new Vector(getGridEndX() - getGridPos().getX() + buttonSize, getRowButtonList().get(indexSelectedRow).getSize().getY()), true, 2, ColorE.BLUE.green(175)).draw();
+        } catch (IndexOutOfBoundsException ignored) {
+        }
+    }
 
-        updateCellSelection(button,action);
+
+    private void updateColumnColor() {
+        if (colorPickerTextColumn.isMouseOver())
+            for (ArrayList<Cell> row : getFile().getCellGrid()) {
+                Cell cell = row.get(indexSelectedColumn);
+                cell.setTextColor(colorPickerTextColumn.getContainer().get());
+            }
+        if (colorPickerFillColumn.isMouseOver())
+            for (ArrayList<Cell> row : getFile().getCellGrid()) {
+                Cell cell = row.get(indexSelectedColumn);
+                cell.setFillColor(colorPickerFillColumn.getContainer().get());
+            }
+        if (colorPickerOutlineColumn.isMouseOver())
+            for (ArrayList<Cell> row : getFile().getCellGrid()) {
+                Cell cell = row.get(indexSelectedColumn);
+                cell.setOutlineColor(colorPickerOutlineColumn.getContainer().get());
+            }
+    }
+    private void updateRowColor() {
+        if (colorPickerTextRow.isMouseOver())
+            for (Cell cell : getFile().getCellGrid().get(indexSelectedRow)) cell.setTextColor(colorPickerTextRow.getContainer().get());
+        if (colorPickerFillRow.isMouseOver())
+            for (Cell cell : getFile().getCellGrid().get(indexSelectedRow)) cell.setFillColor(colorPickerFillRow.getContainer().get());
+        if (colorPickerOutlineRow.isMouseOver())
+            for (Cell cell : getFile().getCellGrid().get(indexSelectedRow)) cell.setOutlineColor(colorPickerOutlineRow.getContainer().get());
     }
 
     private void updateCloseSettingsBar() {
         //Close Column & Row Settings if deleted
-        if (columnSettingsBar.getTitle().equals(getColumnTitle(getColumnButtonList().size()))) columnSettingsBar.setOpen(false);
-        if (rowSettingsBar.getTitle().equals(getRowTitle(getRowButtonList().size()))) rowSettingsBar.setOpen(false);
+        if (barColumnSettings.getTitle().equals(getColumnTitle(getColumnButtonList().size()))) barColumnSettings.setOpen(false);
+        if (barRowSettings.getTitle().equals(getRowTitle(getRowButtonList().size()))) barRowSettings.setOpen(false);
 
         //Close Column Settings Bar When Click Outside
         boolean isColumnOutOfBounds = true;
         for (int column = getColumnStartIndex(); column <= getColumnEndIndex(); column++) {
             ButtonUI columnButton = getColumnButtonList().get(column);
-            if (!columnButton.isMouseOver() && columnSettingsBar.getTitle().equals(getColumnTitle(column)) && getWindow().getScaledMousePos().getY() > columnSettingsBar.getWidth()) {
-                columnSettingsBar.setOpen(false);
-                selectedColumnIndex = -1;
+            if (!columnButton.isMouseOver() && barColumnSettings.getTitle().equals(getColumnTitle(column)) && getWindow().getScaledMousePos().getY() > barColumnSettings.getWidth()) {
+                barColumnSettings.setOpen(false);
+                indexSelectedColumn = -1;
             }
-            if (columnSettingsBar.getTitle().equals(getColumnTitle(column))) isColumnOutOfBounds = false;
+            if (barColumnSettings.getTitle().equals(getColumnTitle(column))) isColumnOutOfBounds = false;
         }
         if (isColumnOutOfBounds) {
-            columnSettingsBar.setOpen(false);
-            selectedColumnIndex = -1;
+            barColumnSettings.setOpen(false);
+            indexSelectedColumn = -1;
         }
 
         //Close Row Settings Bar When Click Outside
         boolean isRowOutOfBounds = true;
         for (int row = getRowStartIndex(); row <= getRowEndIndex(); row++) {
             ButtonUI rowButton = getRowButtonList().get(row);
-            if (!rowButton.isMouseOver() && rowSettingsBar.getTitle().equals(getRowTitle(row)) && getWindow().getScaledMousePos().getY() > rowSettingsBar.getWidth()) {
-                rowSettingsBar.setOpen(false);
-                selectedRowIndex = -1;
+            if (!rowButton.isMouseOver() && barRowSettings.getTitle().equals(getRowTitle(row)) && getWindow().getScaledMousePos().getY() > barRowSettings.getWidth()) {
+                barRowSettings.setOpen(false);
+                indexSelectedRow = -1;
             }
-            if (rowSettingsBar.getTitle().equals(getRowTitle(row))) isRowOutOfBounds = false;
+            if (barRowSettings.getTitle().equals(getRowTitle(row))) isRowOutOfBounds = false;
         }
         if (isRowOutOfBounds) {
-            rowSettingsBar.setOpen(false);
-            selectedRowIndex = -1;
+            barRowSettings.setOpen(false);
+            indexSelectedRow = -1;
         }
-    }
-
-    private void setColumnColor() {
-        if (colorPickerTextColumn.isMouseOver()) {
-            for (ArrayList<Cell> row : getFile().getCellGrid()) {
-                Cell cell = row.get(selectedColumnIndex);
-                cell.setTextColor(colorPickerTextColumn.getContainer().get());
-            }
-        }
-        if (colorPickerFillColumn.isMouseOver()) {
-            for (ArrayList<Cell> row : getFile().getCellGrid()) {
-                Cell cell = row.get(selectedColumnIndex);
-                cell.setFillColor(colorPickerFillColumn.getContainer().get());
-            }
-        }
-        if (colorPickerOutlineColumn.isMouseOver()) {
-            for (ArrayList<Cell> row : getFile().getCellGrid()) {
-                Cell cell = row.get(selectedColumnIndex);
-                cell.setOutlineColor(colorPickerOutlineColumn.getContainer().get());
-            }
-        }
-    }
-
-    private void setRowColor() {
-        if (colorPickerTextRow.isMouseOver())
-            for (Cell cell : getFile().getCellGrid().get(selectedRowIndex)) cell.setTextColor(colorPickerTextRow.getContainer().get());
-
-        if (colorPickerFillRow.isMouseOver())
-            for (Cell cell : getFile().getCellGrid().get(selectedRowIndex)) cell.setFillColor(colorPickerFillRow.getContainer().get());
-
-        if (colorPickerOutlineRow.isMouseOver())
-            for (Cell cell : getFile().getCellGrid().get(selectedRowIndex)) cell.setOutlineColor(colorPickerOutlineRow.getContainer().get());
     }
 
     private void updateCellSelection(int button, int action) {
@@ -448,69 +437,23 @@ public class EditorScene extends Scene {
 
                 if (cell.isMouseOver()) {
                     if (button == Mouse.BUTTON_RIGHT.getId() && action == Mouse.ACTION_RELEASE) {
+                        updateCellSettingsContainers(cell);
                         cell.setSelected(!cell.isSelected());
                         cell.setTyping(false);
-                        setCellSettingContainers(cell);
 
-                        cellSettingsBar.setOpen(!cellSettingsBar.getTitle().equals(getCellTitle(column, row)) || !cellSettingsBar.isOpen());
-                        cellSettingsBar.setTitle(getCellTitle(column, row));
+                        barCellSettings.setOpen(cell.isSelected() || !barCellSettings.isOpen());
+                        barCellSettings.setTitle(getCellTitle(column, row));
                     }
-                } else if (getWindow().getScaledMousePos().getY() > cellSettingsBar.getWidth()) {
+                } else if (getWindow().getScaledMousePos().getY() > barCellSettings.getWidth()) {
+                    if (cell.isSelected()) barCellSettings.setOpen(false);
                     cell.setSelected(false);
-                    if (cellSettingsBar.getTitle().equals(getCellTitle(column, row))) cellSettingsBar.setOpen(false);
                 }
-                if (cell.isTyping()) cellSettingsBar.setOpen(false);
+                if (cell.isTyping()) barCellSettings.setOpen(false);
             }
         }
     }
 
-
-    private void createNewColumnButton() {
-        int index = getColumnButtonList().size();
-        ButtonUI button;
-        getColumnButtonList().add(button = new ButtonUI(String.valueOf(StringUtil.getLetterFromIndex(index)).toUpperCase(), Vector.NULL, Vector.NULL, ColorE.GRAY, ButtonUI.MouseButton.ALL, () -> {
-            //Set Containers
-            sliderColumnWidth.setContainer(getFile().getColumnWidthSettingsList().get(index));
-            buttonDeleteColumn.setAction(() -> {
-                getFile().deleteColumn(index);
-                getColumnButtonList().clear(); //TODO: There is probably a more efficient way to do this for the column buttons
-                for (int column = 0; column < getFile().getColumnCount().get(); column++) createNewColumnButton();
-            });
-
-            //Set Column Selected
-            selectedColumnIndex = (selectedColumnIndex == index) ? -1 : index;
-
-            //Set Open, Set Title
-            columnSettingsBar.setOpen(!columnSettingsBar.getTitle().equals(getColumnTitle(index)) || !columnSettingsBar.isOpen());
-            columnSettingsBar.setTitle(getColumnTitle(index));
-        }));
-        button.hoverAnimation.unsubscribe();
-    }
-
-    private void createNewRowButton() {
-        int index = getRowButtonList().size();
-        ButtonUI button;
-        getRowButtonList().add(button = new ButtonUI(String.valueOf(index), Vector.NULL, Vector.NULL, ColorE.GRAY, ButtonUI.MouseButton.ALL, () -> {
-            //Set Containers
-            settingSliderRowHeight.setContainer(getFile().getRowHeightSettingsList().get(index));
-            buttonDeleteRow.setAction(() -> {
-                getFile().deleteRow(index);
-                getRowButtonList().clear();
-                for (int row = 0; row < getFile().getRowCount().get(); row++) createNewRowButton();
-            });
-
-            //Set Row Selected
-            selectedRowIndex = (selectedRowIndex == index) ? -1 : index;
-
-            //Set Open, Set Title
-            rowSettingsBar.setOpen(!rowSettingsBar.getTitle().equals(getRowTitle(index)) || !rowSettingsBar.isOpen());
-            rowSettingsBar.setTitle(getRowTitle(index));
-        }));
-        button.hoverAnimation.unsubscribe();
-    }
-
-
-    private void setCellSettingContainers(Cell cell) {
+    private void updateCellSettingsContainers(Cell cell) {
         toggleBold.setContainer(cell.isTextBold());
         toggleItalic.setContainer(cell.isTextItalic());
         sliderOutlineWidth.setContainer(cell.getOutlineWidth());
@@ -519,16 +462,65 @@ public class EditorScene extends Scene {
         colorPickerFill.setContainer(cell.getFillColor());
     }
 
+    private void addButtonNewColumn() {
+        int index = getColumnButtonList().size();
+        ButtonUI button;
+        getColumnButtonList().add(button = new ButtonUI(String.valueOf(StringUtil.getLetterFromIndex(index)).toUpperCase(), Vector.NULL, Vector.NULL, ColorE.GRAY, ButtonUI.MouseButton.ALL, () -> {
+
+            //Set Delete Action
+            buttonDeleteColumn.setAction(() -> {
+                getFile().deleteColumn(index);
+                getColumnButtonList().clear(); //TODO: There is probably a more efficient way to do this for the column buttons
+                for (int column = 0; column < getFile().getColumnCount().get(); column++) addButtonNewColumn();
+            });
+
+            //Set Containers
+            sliderColumnWidth.setContainer(getFile().getColumnWidthSettingsList().get(index));
+
+            //Set Column Selected
+            indexSelectedColumn = (indexSelectedColumn == index) ? -1 : index;
+
+            //Set Open, Set Title
+            barColumnSettings.setOpen(index == indexSelectedColumn || !barColumnSettings.isOpen());
+            barColumnSettings.setTitle(getColumnTitle(index));
+        }));
+        button.hoverAnimation.unsubscribe();
+    }
+    private void addButtonNewRow() {
+        int index = getRowButtonList().size();
+        ButtonUI button;
+        getRowButtonList().add(button = new ButtonUI(String.valueOf(index), Vector.NULL, Vector.NULL, ColorE.GRAY, ButtonUI.MouseButton.ALL, () -> {
+
+            //Set Delete Action
+            buttonDeleteRow.setAction(() -> {
+                getFile().deleteRow(index);
+                getRowButtonList().clear();
+                for (int row = 0; row < getFile().getRowCount().get(); row++) addButtonNewRow();
+            });
+
+            //Set Containers
+            settingSliderRowHeight.setContainer(getFile().getRowHeightSettingsList().get(index));
+
+            //Set Row Selected
+            indexSelectedRow = (indexSelectedRow == index) ? -1 : index;
+
+            //Set Open, Set Title
+            barRowSettings.setOpen(index == indexSelectedRow || !barRowSettings.isOpen());
+            barRowSettings.setTitle(getRowTitle(index));
+        }));
+        button.hoverAnimation.unsubscribe();
+    }
+
 
     private void setRowStartIndex(int val) {
-        this.rowStartIndex = Math.min(val, getFile().getCellGrid().size() - 1);
+        this.indexRowStart = Math.min(val, getFile().getCellGrid().size() - 1);
     }
     private void setColumnStartIndex(int val) {
-        this.columnStartIndex = Math.min(val, getFile().getCellGrid().get(0).size() - 1);
+        this.indexColumnStart = Math.min(val, getFile().getCellGrid().get(0).size() - 1);
     }
 
     private int getRowStartIndex() {
-        return Math.max(this.rowStartIndex, 0);
+        return Math.max(this.indexRowStart, 0);
     }
     private int getRowEndIndex() {
         int index = getRowStartIndex();
@@ -541,7 +533,7 @@ public class EditorScene extends Scene {
     }
 
     private int getColumnStartIndex() {
-        return Math.max(this.columnStartIndex, 0);
+        return Math.max(this.indexColumnStart, 0);
     }
     private int getColumnEndIndex() {
         int index = getColumnStartIndex();
@@ -563,6 +555,16 @@ public class EditorScene extends Scene {
         return "Cell: " + String.valueOf(StringUtil.getLetterFromIndex(column)).toUpperCase() + row + " Settings";
     }
 
+    private Vector getGridPos() {
+        return new Vector(40, 70);
+    }
+    private double getGridEndX() {
+        return getColumnButtonList().get(getColumnEndIndex()).getPos().getX() + getColumnButtonList().get(getColumnEndIndex()).getSize().getX();
+    }
+    private double getGridEndY() {
+        return getRowButtonList().get(getRowEndIndex()).getPos().getY() + getRowButtonList().get(getRowEndIndex()).getSize().getY();
+    }
+
     private double getGridWidth() {
         double width = 0;
         for (int i = getColumnStartIndex(); i < getColumnEndIndex(); i++) {
@@ -571,14 +573,12 @@ public class EditorScene extends Scene {
         }
         return width;
     }
-
     private double getGridHeight() {
         double height = 0;
         for (int i = getRowStartIndex(); i < getRowEndIndex(); i++) {
             ButtonUI rowButton = getRowButtonList().get(i);
             height += rowButton.getSize().getY();
         }
-        System.out.println(height);
         return height;
     }
 
