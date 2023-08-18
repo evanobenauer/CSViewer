@@ -17,4 +17,4 @@ Clicking on a column or row button will also open the settings bar. Column/Row s
 ![Screenshot](img/settings.jpg)
 
 
-The Program current has issues editing very large CSV files due to memory constraints, but the intention of creating this program was for data privacy in the form of passwords and smaller information logs, so it is acceptable
+The Program current has issues editing very large CSV files due to memory constraints with how Cell are created and stored. The intention of creating this program was for data privacy in the form of passwords and smaller information logs, so it is acceptable. In the future I will focus on rewriting the loading of CSV files to better support larger data sets
