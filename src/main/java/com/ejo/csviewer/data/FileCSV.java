@@ -18,7 +18,6 @@ public class FileCSV {
 
     private final SettingManager settingManager;
 
-    //TODO; The larger the file, the more memory it takes up, and the worse the performance
     private final ArrayList<ArrayList<Cell>> grid = new ArrayList<>();
     private final ArrayList<Setting<Integer>> columnWidthSettings = new ArrayList<>();
     private final ArrayList<Setting<Integer>> rowHeightSettings = new ArrayList<>();
@@ -43,6 +42,11 @@ public class FileCSV {
             this.rowHeightSettings.add(new Setting<>(getSettingManager(), getRowHeightSettingName(row), 20));
     }
 
+    //TODO; The larger the file, the more memory it takes up, the more work Garbage Collection must do, and the worse the performance
+    // The memory issue is due to the LARGE amount of cells being created HERE IN THIS METHOD, not the size of the file.
+    // In the future, try and update the file every scroll and make new cells using the file
+    // For the issue with saving, just save the contents of the cell EVERY time it is edited so you don't have to save all at once, which would not
+    // work if you only have so many cells created at a time
     public void createGrid() {
         for (int row = 0; row < getRowCount().get(); row++) {
             getCellGrid().add(new ArrayList<>());

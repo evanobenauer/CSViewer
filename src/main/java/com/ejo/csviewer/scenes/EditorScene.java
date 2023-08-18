@@ -275,7 +275,6 @@ public class EditorScene extends Scene {
         } catch (ConcurrentModificationException | IndexOutOfBoundsException ignored) {
         }
 
-        //TODO: Add JavaDOC Comments
         updateCloseSettingsBar();
         updateColumnColor();
         updateRowColor();
@@ -286,9 +285,12 @@ public class EditorScene extends Scene {
     public void onMouseScroll(int scroll, Vector mousePos) {
         super.onMouseScroll(scroll, mousePos);
         setRowStartIndex(getRowStartIndex() - scroll);
+        //TODO: MAYBE every time a scroll input occurs, you ONLY read the start-end index of the file to conserve memory
     }
 
-
+    /**
+     * Draws the background gradient (gray-green)
+     */
     private void drawBackgroundGradient() {
         Vector pos = Vector.NULL;
         Vector size = getSize();
@@ -305,6 +307,12 @@ public class EditorScene extends Scene {
         GL11.glColor4f(1, 1, 1, 1);
     }
 
+    /**
+     * Draw All cells from the cell grid in the bounds of the start and end indices
+     * @param gridPos
+     * @param separation
+     * @throws ConcurrentModificationException
+     */
     public void drawCells(Vector gridPos, int separation) throws ConcurrentModificationException {
         int x = (int) gridPos.getX();
         int y = (int) gridPos.getY();
@@ -322,6 +330,13 @@ public class EditorScene extends Scene {
         }
     }
 
+    /**
+     * Draw all buttons from the button lists in the bounds of the start and end indices
+     * @param gridPos
+     * @param separation
+     * @param size
+     * @throws ConcurrentModificationException
+     */
     public void drawButtons(Vector gridPos, int separation, int size) throws ConcurrentModificationException {
         int x = (int) gridPos.getX();
         int y = (int) gridPos.getY() - size - separation;
@@ -344,6 +359,9 @@ public class EditorScene extends Scene {
         }
     }
 
+    /**
+     * Draws the hover rectangle on the column/row buttons of the respective cell when the cell is hovered
+     */
     private void drawButtonHoverHighlight() {
         for (int row = getRowStartIndex(); row <= getRowEndIndex(); row++) {
             for (int column = getColumnStartIndex(); column <= getColumnEndIndex(); column++) {
@@ -356,6 +374,10 @@ public class EditorScene extends Scene {
         }
     }
 
+    /**
+     * Draws the blue rectangles for a selected column/row when the column/row is selected by pressing the button
+     * @param buttonSize
+     */
     private void drawSelectionRectangles(int buttonSize) {
         try {
             if (indexSelectedColumn >= getColumnStartIndex() && indexSelectedColumn <= getColumnEndIndex())
@@ -367,6 +389,9 @@ public class EditorScene extends Scene {
     }
 
 
+    /**
+     * Updates the color containers of each cell in a column depending on the color pickers
+     */
     private void updateColumnColor() {
         if (colorPickerTextColumn.isMouseOver())
             for (ArrayList<Cell> row : getFile().getCellGrid()) {
@@ -384,6 +409,10 @@ public class EditorScene extends Scene {
                 cell.setOutlineColor(colorPickerOutlineColumn.getContainer().get());
             }
     }
+
+    /**
+     * Updates the color containers of each cell in a row depending on the color pickers
+     */
     private void updateRowColor() {
         if (colorPickerTextRow.isMouseOver())
             for (Cell cell : getFile().getCellGrid().get(indexSelectedRow)) cell.setTextColor(colorPickerTextRow.getContainer().get());
@@ -393,6 +422,9 @@ public class EditorScene extends Scene {
             for (Cell cell : getFile().getCellGrid().get(indexSelectedRow)) cell.setOutlineColor(colorPickerOutlineRow.getContainer().get());
     }
 
+    /**
+     * Updates whether a settings bar for the Column, Row, or Cell should be closed whenever a click occurs
+     */
     private void updateCloseSettingsBar() {
         //Close Column & Row Settings if deleted
         if (barColumnSettings.getTitle().equals(getColumnTitle(getColumnButtonList().size()))) barColumnSettings.setOpen(false);
@@ -429,6 +461,11 @@ public class EditorScene extends Scene {
         }
     }
 
+    /**
+     * Updates whether a cell should be selected whenever a button is clicked. This will set a selection or close a selection
+     * @param button
+     * @param action
+     */
     private void updateCellSelection(int button, int action) {
         //Set Cell Selected, Open Cell Settings Bar
         for (int row = getRowStartIndex(); row <= getRowEndIndex(); row++) {
@@ -453,6 +490,10 @@ public class EditorScene extends Scene {
         }
     }
 
+    /**
+     * Sets all the necessary setting containers to the cell settings containers
+     * @param cell
+     */
     private void updateCellSettingsContainers(Cell cell) {
         toggleBold.setContainer(cell.isTextBold());
         toggleItalic.setContainer(cell.isTextItalic());
@@ -462,6 +503,9 @@ public class EditorScene extends Scene {
         colorPickerFill.setContainer(cell.getFillColor());
     }
 
+    /**
+     * Add a new column button to the column button list when the method is called
+     */
     private void addButtonNewColumn() {
         int index = getColumnButtonList().size();
         ButtonUI button;
@@ -486,6 +530,10 @@ public class EditorScene extends Scene {
         }));
         button.hoverAnimation.unsubscribe();
     }
+
+    /**
+     * Add a new row button to the row button list when the method is called
+     */
     private void addButtonNewRow() {
         int index = getRowButtonList().size();
         ButtonUI button;
