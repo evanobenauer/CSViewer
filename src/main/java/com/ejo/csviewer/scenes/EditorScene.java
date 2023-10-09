@@ -245,9 +245,6 @@ public class EditorScene extends Scene {
             if (key == Key.KEY_DOWN.getId()) setRowStartIndex(getRowStartIndex() + 1);
             if (key == Key.KEY_RIGHT.getId()) setColumnStartIndex(getColumnStartIndex() + 1);
             if (key == Key.KEY_LEFT.getId()) setColumnStartIndex(getColumnStartIndex() - 1);
-
-            if (key == Key.KEY_EQUALS.getId()) getWindow().setUIScale(getWindow().getUIScale() + .05);
-            if (key == Key.KEY_MINUS.getId()) getWindow().setUIScale(Math.max(.05,getWindow().getUIScale() - .05));
         }
     }
 
