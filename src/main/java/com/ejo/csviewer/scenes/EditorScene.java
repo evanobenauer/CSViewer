@@ -200,8 +200,6 @@ public class EditorScene extends Scene {
         //Draw Add Column Text
         if (buttonNewColumn.shouldRender())
             new TextH("Add Column", Fonts.getDefaultFont(18), buttonNewColumn.getPos(), ColorE.WHITE).drawCentered(this, getWindow().getScaledMousePos(), buttonNewColumn.getSize());
-
-        QuickDraw.drawFPSTPS(this, new Vector(2, getSize().getY() - 28), 10, false);
     }
 
     @Override
