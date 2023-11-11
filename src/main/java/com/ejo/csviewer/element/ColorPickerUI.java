@@ -5,7 +5,7 @@ import com.ejo.glowlib.misc.ColorE;
 import com.ejo.glowlib.setting.Container;
 import com.ejo.glowui.scene.Scene;
 import com.ejo.glowui.scene.elements.widget.ModeCycleUI;
-import com.ejo.glowui.util.QuickDraw;
+import com.ejo.glowui.util.render.QuickDraw;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;

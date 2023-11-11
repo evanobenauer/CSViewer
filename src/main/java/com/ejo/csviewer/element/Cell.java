@@ -9,10 +9,10 @@ import com.ejo.glowlib.time.StopWatch;
 import com.ejo.glowui.scene.Scene;
 import com.ejo.glowui.scene.elements.shape.RectangleUI;
 import com.ejo.glowui.scene.elements.widget.TextFieldUI;
-import com.ejo.glowui.util.DrawUtil;
 import com.ejo.glowui.util.Key;
 import com.ejo.glowui.util.Mouse;
-import com.ejo.glowui.util.QuickDraw;
+import com.ejo.glowui.util.Util;
+import com.ejo.glowui.util.render.QuickDraw;
 
 import java.awt.*;
 
@@ -109,7 +109,7 @@ public class Cell extends TextFieldUI {
         //Do Cursor Blink
         cursorTimer.start();
         if (cursorTimer.hasTimePassedS(1) && isTyping()) {
-            DrawUtil.forceRenderFrame();
+            Util.forceRenderFrame();
             blinked = !blinked;
             cursorTimer.restart();
         }

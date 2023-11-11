@@ -17,10 +17,10 @@ import com.ejo.glowui.scene.elements.shape.RectangleUI;
 import com.ejo.glowui.scene.elements.widget.ButtonUI;
 import com.ejo.glowui.scene.elements.widget.SliderUI;
 import com.ejo.glowui.scene.elements.widget.ToggleUI;
-import com.ejo.glowui.util.Fonts;
 import com.ejo.glowui.util.Key;
 import com.ejo.glowui.util.Mouse;
-import com.ejo.glowui.util.QuickDraw;
+import com.ejo.glowui.util.render.Fonts;
+import com.ejo.glowui.util.render.QuickDraw;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -162,6 +162,7 @@ public class EditorScene extends Scene {
         setRowStartIndex(0); //Sets the index to the start
     }
 
+    //TODO; add an x button similar to in GravityShapes
     @Override
     public void draw() {
         drawBackgroundGradient();
