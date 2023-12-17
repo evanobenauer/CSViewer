@@ -511,6 +511,7 @@ public class EditorScene extends Scene {
             buttonDeleteColumn.setAction(() -> {
                 getFile().deleteColumn(index);
                 getColumnButtonList().clear(); //TODO: There is probably a more efficient way to do this for the column buttons
+                System.gc();
                 for (int column = 0; column < getFile().getColumnCount().get(); column++) addButtonNewColumn();
             });
 
@@ -539,6 +540,7 @@ public class EditorScene extends Scene {
             buttonDeleteRow.setAction(() -> {
                 getFile().deleteRow(index);
                 getRowButtonList().clear();
+                System.gc();
                 for (int row = 0; row < getFile().getRowCount().get(); row++) addButtonNewRow();
             });
 
